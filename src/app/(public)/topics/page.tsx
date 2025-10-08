@@ -1,9 +1,14 @@
+import { Metadata } from 'next';
 import { getTopics } from '@/lib/api/topics';
+import { generateTopicsListMetadata } from '@/lib/utils/seo';
 import TopicCard from '@/components/public/TopicCard';
 import Link from 'next/link';
 import TagFilter from '@/components/public/TagFilter';
 import LocaleFilter from '@/components/public/LocaleFilter';
 import { Suspense } from 'react';
+
+// Generate metadata for SEO
+export const metadata: Metadata = generateTopicsListMetadata();
 
 interface TopicsPageProps {
   searchParams: {

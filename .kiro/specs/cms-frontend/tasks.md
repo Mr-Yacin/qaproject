@@ -137,153 +137,241 @@
     - Implement URL query params for filters
     - _Requirements: 1.2, 9.5_
 
-- [ ] 7. Create individual topic page
-  - [ ] 7.1 Build topic detail page
+- [x] 7. Create individual topic page
+
+
+
+
+
+  - [x] 7.1 Build topic detail page
+
+
     - Create `app/(public)/topics/[slug]/page.tsx`
     - Fetch topic data with getTopicBySlug()
     - Display topic title, main question, and article content
     - Implement responsive layout for mobile, tablet, desktop
     - _Requirements: 1.3, 1.4, 1.5, 1.6, 7.1, 7.2, 7.3_
   
-  - [ ] 7.2 Create FAQAccordion component
+  - [x] 7.2 Create FAQAccordion component
+
+
     - Build accordion component for FAQ items
     - Implement expand/collapse functionality
     - Add smooth animations and keyboard navigation
     - Add ARIA attributes for accessibility
     - _Requirements: 1.3, 8.4_
   
-  - [ ] 7.3 Add "back to top" button
+  - [x] 7.3 Add "back to top" button
+
+
     - Create scroll-to-top button that appears on scroll
     - Make it mobile-friendly with proper touch target size
     - _Requirements: 1.8, 7.4_
 
-- [ ] 8. Implement SEO optimization
-  - [ ] 8.1 Add meta tags and Open Graph
+- [x] 8. Implement SEO optimization
+
+
+
+
+
+
+  - [x] 8.1 Add meta tags and Open Graph
+
     - Create `lib/utils/seo.ts` with generateTopicMetadata() function
     - Add metadata to topic pages with title, description, OG tags
     - Implement Twitter card tags
     - Add canonical URLs
     - _Requirements: 2.1, 2.4, 2.5, 2.6_
   
-  - [ ] 8.2 Add structured data (JSON-LD)
+
+
+  - [x] 8.2 Add structured data (JSON-LD)
+
+
+
+
+
     - Create generateArticleSchema() function for Article schema
     - Create generateFAQSchema() function for FAQ schema
     - Add JSON-LD scripts to topic pages
+
+
     - _Requirements: 2.3_
+
   
-  - [ ] 8.3 Generate sitemap and robots.txt
+  - [x] 8.3 Generate sitemap and robots.txt
+
     - Create `app/sitemap.ts` to generate sitemap.xml
     - Create `app/robots.ts` for robots.txt
     - Include all published topics in sitemap
     - _Requirements: 2.7, 2.8_
 
-- [ ] 9. Implement search functionality
-  - [ ] 9.1 Create SearchBar component
+- [x] 9. Implement search functionality
+
+
+
+
+
+  - [x] 9.1 Create SearchBar component
+
+
     - Build search input with debounced onChange
     - Add clear button and loading state
     - Implement keyboard shortcut (Cmd+K) to focus search
     - _Requirements: 9.1, 9.2_
   
-  - [ ] 9.2 Create search results page
+  - [x] 9.2 Create search results page
+
+
     - Build `app/(public)/search/page.tsx`
     - Filter topics by search query
     - Display results with highlighted keywords
     - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 10. Set up authentication with NextAuth.js
-  - [ ] 10.1 Configure NextAuth.js
+- [x] 10. Set up authentication with NextAuth.js
+
+
+
+
+  - [x] 10.1 Configure NextAuth.js
+
+
     - Create `lib/auth.ts` with NextAuth configuration
     - Set up CredentialsProvider with email/password
     - Configure session callbacks
     - _Requirements: 3.2, 3.3_
   
-  - [ ] 10.2 Create API route for NextAuth
+  - [x] 10.2 Create API route for NextAuth
+
+
     - Create `app/api/auth/[...nextauth]/route.ts`
     - Export GET and POST handlers
     - _Requirements: 3.2_
   
-  - [ ] 10.3 Create middleware for route protection
+  - [x] 10.3 Create middleware for route protection
+
+
     - Create `middleware.ts` to protect /admin routes
     - Redirect unauthenticated users to login page
     - _Requirements: 3.5, 3.4_
   
-  - [ ] 10.4 Create login page
+  - [x] 10.4 Create login page
+
+
     - Build `app/admin/login/page.tsx` with login form
     - Implement form validation with React Hook Form and Zod
     - Display error messages for invalid credentials
     - Redirect to dashboard on successful login
     - _Requirements: 3.1, 3.2, 3.3, 8.6, 8.7_
 
-- [ ] 11. Build admin dashboard layout
-  - [ ] 11.1 Create admin layout component
+- [x] 11. Build admin dashboard layout
+
+
+
+
+
+  - [x] 11.1 Create admin layout component
+
+
     - Create `app/admin/layout.tsx` with sidebar and main content area
     - Implement responsive layout (collapsible sidebar on mobile)
     - _Requirements: 7.1, 7.2, 7.3_
   
-  - [ ] 11.2 Create Sidebar component
+  - [x] 11.2 Create Sidebar component
+
+
     - Build navigation sidebar with links to dashboard sections
     - Add active state highlighting for current route
     - Add user profile section with logout button
     - Make collapsible on mobile and tablet
     - _Requirements: 3.6, 8.2, 8.3_
   
-  - [ ] 11.3 Create dashboard home page
+  - [x] 11.3 Create dashboard home page
+
+
     - Build `app/admin/page.tsx` with overview stats
     - Display total topics, drafts, published count
     - Add quick action buttons
     - _Requirements: 8.1, 8.3, 8.5_
 
-- [ ] 12. Implement topics management list
-  - [ ] 12.1 Create topics management page
+- [x] 12. Implement topics management list
+
+
+
+
+  - [x] 12.1 Create topics management page
+
+
     - Build `app/admin/topics/page.tsx`
     - Fetch and display all topics in a table/list
     - Add search and filter functionality
     - Add "Create New Topic" button
     - _Requirements: 4.1, 4.2_
   
-  - [ ] 12.2 Add delete functionality
+  - [x] 12.2 Add delete functionality
+
     - Add delete button for each topic with confirmation dialog
     - Implement delete via API (may need to create delete endpoint or use ingest)
     - Show success/error messages
     - _Requirements: 4.6, 4.7, 8.7, 8.8_
 
-- [ ] 13. Create topic form for create/edit
-  - [ ] 13.1 Build topic form component
+- [x] 13. Create topic form for create/edit
+
+
+
+
+  - [x] 13.1 Build topic form component
+
+
     - Create `components/admin/TopicForm.tsx`
     - Add form fields: slug, title, locale, tags
     - Implement auto-generate slug from title
     - Add form validation with React Hook Form and Zod
     - _Requirements: 4.3, 4.4, 4.5, 4.8, 8.6_
   
-  - [ ] 13.2 Create new topic page
+  - [x] 13.2 Create new topic page
+
+
     - Build `app/admin/topics/new/page.tsx`
     - Render TopicForm in create mode
     - Handle form submission with createOrUpdateTopic()
     - Show success message and redirect to topics list
     - _Requirements: 4.2, 4.3, 8.8_
   
-  - [ ] 13.3 Create edit topic page
+  - [x] 13.3 Create edit topic page
+
+
     - Build `app/admin/topics/[slug]/edit/page.tsx`
     - Fetch existing topic data with getTopicBySlug()
     - Render TopicForm in edit mode with pre-filled data
     - Handle form submission with createOrUpdateTopic()
     - _Requirements: 4.4, 4.5, 8.8_
 
-- [ ] 14. Implement rich text editor for articles
-  - [ ] 14.1 Create RichTextEditor component
+- [x] 14. Implement rich text editor for articles
+
+
+
+
+  - [x] 14.1 Create RichTextEditor component
+
+
     - Install and configure Tiptap or React-Quill
     - Create `components/admin/RichTextEditor.tsx`
     - Add formatting toolbar (bold, italic, headings, lists, links)
     - Support markdown mode toggle
     - _Requirements: 5.1, 5.2, 5.7_
   
-  - [ ] 14.2 Integrate editor into TopicForm
+  - [x] 14.2 Integrate editor into TopicForm
+
+
     - Add article content field using RichTextEditor
     - Add article status dropdown (Draft/Published)
     - Add preview mode to show formatted content
     - _Requirements: 5.1, 5.4, 5.5, 5.6_
   
-  - [ ] 14.3 Add image upload support
+  - [x] 14.3 Add image upload support
+
+
     - Implement image upload functionality (may need to add upload endpoint)
     - Add image embedding in editor
     - _Requirements: 5.8_

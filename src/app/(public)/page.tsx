@@ -1,7 +1,12 @@
+import { Metadata } from 'next';
 import { getTopics } from '@/lib/api/topics';
+import { generateHomeMetadata, generateWebSiteSchema } from '@/lib/utils/seo';
 import SearchBar from '@/components/public/SearchBar';
 import TopicCard from '@/components/public/TopicCard';
 import Link from 'next/link';
+
+// Generate metadata for SEO
+export const metadata: Metadata = generateHomeMetadata();
 
 /**
  * Homepage with hero section and featured topics
@@ -11,8 +16,18 @@ export default async function HomePage() {
   // Fetch featured topics (first 6 topics)
   const topicsData = await getTopics({ limit: 6, page: 1 });
 
+  // Generate WebSite schema for homepage
+  const websiteSchema = generateWebSiteSchema();
+
   return (
-    <div className="py-12 md:py-16 lg:py-20">
+    <>
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+
+      <div className="py-12 md:py-16 lg:py-20">
       {/* Hero Section */}
       <div className="text-center mb-12 md:mb-16">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
@@ -55,6 +70,7 @@ export default async function HomePage() {
           <p className="text-gray-500 text-lg">No topics available yet.</p>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
