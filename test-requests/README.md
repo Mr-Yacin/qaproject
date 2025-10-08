@@ -10,6 +10,23 @@ This directory contains example payloads, testing scripts, and API client collec
 - `postman-collection.json` - Postman/Thunder Client collection with all endpoints
 - `postman-environment.json` - Environment variables template for Postman
 
+## Security Testing
+
+Run comprehensive security tests to verify authentication and protection against common attacks:
+
+```bash
+node test-requests/test-security.js
+```
+
+This tests:
+- HMAC authentication (missing/invalid keys, signatures, timestamps)
+- Replay attack prevention
+- Body tampering detection
+- SQL injection protection
+- XSS protection
+
+See [SECURITY-TESTS.md](./SECURITY-TESTS.md) for detailed results.
+
 ## Quick Start
 
 ### Using the Node.js Test Script
