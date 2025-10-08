@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  locale    String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  questions Question[]
+  articles  Article[]
+  faqItems  FAQItem[]
+
+  @@index([slug])
+  @@index([locale])
+  @@index([tags])
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  topicId   String
+  text      String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@index([topicId, isPrimary])
+}
+
+model Article {
+  id        String        @id @default(cuid())
+  topicId   String        @unique
+  content   String        @db.Text
+  status    ContentStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId, status])
+}
+
+model FAQItem {
+  id        String   @id @default(cuid())
+  topicId   String
+  question  String
+  answer    String   @db.Text
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@index([topicId, order])
+}
+
+model IngestJob {
+  id          String    @id @default(cuid())
+  topicSlug   String
+  status      String // "processing", "completed", "failed"
+  payload     Json
+  error       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([topicSlug])
+  @@index([status])
+  @@index([createdAt])
+}
