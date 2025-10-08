@@ -113,14 +113,25 @@
     - Make cards clickable linking to topic pages
     - _Requirements: 1.2, 7.1, 7.2, 7.3, 8.2, 8.3_
 
-- [ ] 6. Build topics listing page
-  - [ ] 6.1 Create topics listing page
+- [x] 6. Build topics listing page
+
+
+
+
+
+
+  - [x] 6.1 Create topics listing page
+
+
+
     - Build `app/(public)/topics/page.tsx`
     - Fetch topics with getTopics() and display in grid
     - Implement pagination controls
     - _Requirements: 1.2, 7.1, 7.2, 7.3_
   
-  - [ ] 6.2 Add filtering functionality
+  - [x] 6.2 Add filtering functionality
+
+
     - Create TagFilter component for filtering by tags
     - Add locale filter dropdown
     - Implement URL query params for filters
