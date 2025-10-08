@@ -1,0 +1,347 @@
+{
+  "info": {
+    "name": "Q&A Article FAQ API",
+    "description": "API collection for testing the Q&A Article FAQ API with HMAC authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate timestamp",
+          "const timestamp = Date.now().toString();",
+          "pm.environment.set('timestamp', timestamp);",
+          "",
+          "// Get request body",
+          "const body = pm.request.body.raw || '';",
+          "",
+          "// Generate HMAC signature",
+          "const secret = pm.environment.get('INGEST_WEBHOOK_SECRET');",
+          "const message = timestamp + '.' + body;",
+          "const signature = CryptoJS.HmacSHA256(message, secret).toString(CryptoJS.enc.Hex);",
+          "",
+          "pm.environment.set('signature', signature);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Ingest",
+      "item": [
+        {
+          "name": "POST Ingest Content",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generate timestamp",
+                  "const timestamp = Date.now().toString();",
+                  "pm.environment.set('timestamp', timestamp);",
+                  "",
+                  "// Get request body",
+                  "const body = pm.request.body.raw || '';",
+                  "",
+                  "// Generate HMAC signature",
+                  "const secret = pm.environment.get('INGEST_WEBHOOK_SECRET');",
+                  "const message = timestamp + '.' + body;",
+                  "const signature = CryptoJS.HmacSHA256(message, secret).toString(CryptoJS.enc.Hex);",
+                  "",
+                  "pm.environment.set('signature', signature);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('topicId');",
+                  "    pm.expect(jsonData).to.have.property('jobId');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{INGEST_API_KEY}}"
+              },
+              {
+                "key": "x-timestamp",
+                "value": "{{timestamp}}"
+              },
+              {
+                "key": "x-signature",
+                "value": "{{signature}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": {\n    \"slug\": \"how-to-reset-password\",\n    \"title\": \"How to Reset Your Password\",\n    \"locale\": \"en\",\n    \"tags\": [\"authentication\", \"security\", \"account\"]\n  },\n  \"mainQuestion\": {\n    \"text\": \"How do I reset my password if I forgot it?\"\n  },\n  \"article\": {\n    \"content\": \"# How to Reset Your Password\\n\\nIf you've forgotten your password, follow these steps to reset it:\\n\\n1. Go to the login page\\n2. Click on \\\"Forgot Password?\\\"\\n3. Enter your email address\\n4. Check your email for a reset link\\n5. Click the link and create a new password\\n\\nYour new password must be at least 8 characters long and include a mix of letters, numbers, and special characters.\",\n    \"status\": \"PUBLISHED\"\n  },\n  \"faqItems\": [\n    {\n      \"question\": \"How long is the password reset link valid?\",\n      \"answer\": \"The password reset link is valid for 24 hours. After that, you'll need to request a new one.\",\n      \"order\": 0\n    },\n    {\n      \"question\": \"What if I don't receive the reset email?\",\n      \"answer\": \"Check your spam folder first. If you still don't see it, make sure you entered the correct email address.\",\n      \"order\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ingest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ingest"]
+            },
+            "description": "Ingest a complete topic package with question, article, and FAQ items. Requires HMAC authentication."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Topics",
+      "item": [
+        {
+          "name": "GET List Topics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('limit');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "topics"]
+            },
+            "description": "List all topics with optional filtering and pagination. Public endpoint (no authentication required)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET List Topics (Filtered)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All items match locale filter', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const locale = pm.request.url.query.get('locale');",
+                  "    if (locale && jsonData.items.length > 0) {",
+                  "        jsonData.items.forEach(item => {",
+                  "            pm.expect(item.locale).to.equal(locale);",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics?locale=en&tag=security&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "topics"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "en",
+                  "description": "Filter by language code"
+                },
+                {
+                  "key": "tag",
+                  "value": "security",
+                  "description": "Filter by tag"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "List topics with filters applied (locale, tag, pagination)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Topic by Slug",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has complete topic structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('topic');",
+                  "    pm.expect(jsonData).to.have.property('primaryQuestion');",
+                  "    pm.expect(jsonData).to.have.property('article');",
+                  "    pm.expect(jsonData).to.have.property('faqItems');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/how-to-reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "topics", "how-to-reset-password"]
+            },
+            "description": "Retrieve a complete topic with its question, article, and FAQ items. Public endpoint."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Revalidate",
+      "item": [
+        {
+          "name": "POST Revalidate Cache",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generate timestamp",
+                  "const timestamp = Date.now().toString();",
+                  "pm.environment.set('timestamp', timestamp);",
+                  "",
+                  "// Get request body",
+                  "const body = pm.request.body.raw || '';",
+                  "",
+                  "// Generate HMAC signature",
+                  "const secret = pm.environment.get('INGEST_WEBHOOK_SECRET');",
+                  "const message = timestamp + '.' + body;",
+                  "const signature = CryptoJS.HmacSHA256(message, secret).toString(CryptoJS.enc.Hex);",
+                  "",
+                  "pm.environment.set('signature', signature);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms revalidation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('tag');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{INGEST_API_KEY}}"
+              },
+              {
+                "key": "x-timestamp",
+                "value": "{{timestamp}}"
+              },
+              {
+                "key": "x-signature",
+                "value": "{{signature}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag\": \"topics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/revalidate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "revalidate"]
+            },
+            "description": "Trigger cache revalidation for a specific tag. Requires HMAC authentication."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

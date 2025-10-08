@@ -1,0 +1,37 @@
+{
+  "topic": {
+    "slug": "how-to-reset-password",
+    "title": "How to Reset Your Password",
+    "locale": "en",
+    "tags": ["authentication", "security", "account"]
+  },
+  "mainQuestion": {
+    "text": "How do I reset my password if I forgot it?"
+  },
+  "article": {
+    "content": "# How to Reset Your Password\n\nIf you've forgotten your password, follow these steps to reset it:\n\n1. Go to the login page\n2. Click on \"Forgot Password?\"\n3. Enter your email address\n4. Check your email for a reset link\n5. Click the link and create a new password\n\nYour new password must be at least 8 characters long and include a mix of letters, numbers, and special characters.\n\n## Security Tips\n\n- Never share your password with anyone\n- Use a unique password for each account\n- Consider using a password manager\n- Enable two-factor authentication when available",
+    "status": "PUBLISHED"
+  },
+  "faqItems": [
+    {
+      "question": "How long is the password reset link valid?",
+      "answer": "The password reset link is valid for 24 hours. After that, you'll need to request a new one.",
+      "order": 0
+    },
+    {
+      "question": "What if I don't receive the reset email?",
+      "answer": "Check your spam folder first. If you still don't see it, make sure you entered the correct email address. You can also contact support for assistance.",
+      "order": 1
+    },
+    {
+      "question": "Can I use my old password again?",
+      "answer": "For security reasons, you cannot reuse any of your last 5 passwords.",
+      "order": 2
+    },
+    {
+      "question": "What are the password requirements?",
+      "answer": "Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      "order": 3
+    }
+  ]
+}

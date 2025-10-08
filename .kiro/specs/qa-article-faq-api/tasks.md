@@ -388,3 +388,79 @@
   - Document API endpoints and authentication
   - Add examples of valid request payloads
   - _Requirements: 6.5_
+
+- [x] 19. Create Docker configuration
+
+
+
+
+  - [x] 19.1 Create Dockerfile for Next.js application
+
+
+    - Use Node.js LTS base image
+    - Set up multi-stage build (dependencies, build, production)
+    - Copy package files and install dependencies
+    - Copy source code and build Next.js app
+    - Expose port 3000
+    - Set CMD to start Next.js production server
+    - _Requirements: 8.4_
+  - [x] 19.2 Create docker-compose.yml
+
+
+    - Define PostgreSQL service with persistent volume
+    - Define Next.js app service with environment variables
+    - Configure network between services
+    - Set up health checks for database
+    - Map ports (3000 for app, 5432 for database)
+    - _Requirements: 2.1, 6.5_
+  - [x] 19.3 Create .dockerignore file
+
+
+    - Exclude node_modules, .next, .git
+    - Exclude test files and development configs
+    - _Requirements: 8.4_
+  - [x] 19.4 Add Docker-specific scripts to package.json
+
+
+    - Add docker:build script
+    - Add docker:up and docker:down scripts
+    - Add docker:migrate script for running Prisma migrations in container
+    - _Requirements: 2.6_
+
+- [x] 20. Create API testing documentation and examples
+
+
+
+
+
+  - [x] 20.1 Create test-requests/ directory with example files
+
+
+
+    - Create ingest-example.json with sample payload
+    - Create revalidate-example.json with sample payload
+    - _Requirements: 6.5_
+  - [x] 20.2 Create API testing script
+
+
+    - Write Node.js script or shell script to generate HMAC signatures
+    - Include examples for testing POST /api/ingest
+    - Include examples for testing POST /api/revalidate
+    - Include examples for testing GET /api/topics and GET /api/topics/[slug]
+    - _Requirements: 1.4, 6.5_
+  - [x] 20.3 Document curl commands for API testing
+
+
+    - Add curl examples to README for POST /api/ingest with proper headers
+    - Add curl examples for GET /api/topics with query parameters
+    - Add curl examples for GET /api/topics/[slug]
+    - Add curl examples for POST /api/revalidate
+    - Include instructions for generating x-signature header
+    - _Requirements: 1.1, 1.4, 4.5, 5.1, 6.5_
+  - [x] 20.4 Create Postman/Thunder Client collection (optional)
+
+
+    - Export collection JSON with all endpoints
+    - Include pre-request scripts for HMAC signature generation
+    - Add environment variables template
+    - _Requirements: 6.5_

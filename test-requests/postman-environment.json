@@ -1,0 +1,36 @@
+{
+  "name": "Q&A Article FAQ API - Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "INGEST_API_KEY",
+      "value": "your-api-key-here",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "INGEST_WEBHOOK_SECRET",
+      "value": "your-webhook-secret-here",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "timestamp",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "signature",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -17,7 +17,7 @@ export async function GET(
     const { slug } = params;
 
     // Initialize service with repository
-    const repository = new ContentRepository(prisma);
+    const repository = new ContentRepository();
     const contentService = new ContentService(repository);
 
     // Call contentService.getTopicBySlug() (Requirements 4.1, 4.2, 4.3, 4.4)

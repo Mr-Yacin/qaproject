@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Initialize service with repository
-    const repository = new ContentRepository(prisma);
+    const repository = new ContentRepository();
     const contentService = new ContentService(repository);
 
     // Call contentService.listTopics() (Requirements 4.5, 4.6, 4.7, 4.8, 4.9)

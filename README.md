@@ -539,6 +539,221 @@ npm run test:coverage
 
 See `tests/README.md` for detailed testing documentation.
 
+### API Testing with curl
+
+The repository includes example payloads and a testing script in the `test-requests/` directory.
+
+#### Using the Test Script
+
+The easiest way to test the API is using the provided Node.js script:
+
+```bash
+# Set environment variables
+export API_URL="http://localhost:3000"
+export INGEST_API_KEY="your-api-key"
+export INGEST_WEBHOOK_SECRET="your-webhook-secret"
+
+# Test ingestion
+node test-requests/test-api.js ingest
+
+# Test with custom payload
+node test-requests/test-api.js ingest my-payload.json
+
+# Test revalidation
+node test-requests/test-api.js revalidate
+
+# Get a specific topic
+node test-requests/test-api.js get-topic how-to-reset-password
+
+# List topics with filters
+node test-requests/test-api.js list-topics --locale=en --tag=security
+```
+
+#### Manual curl Examples
+
+**POST /api/ingest** - Ingest content with authentication:
+
+```bash
+#!/bin/bash
+
+# Configuration
+API_URL="http://localhost:3000"
+API_KEY="your-api-key-here"
+WEBHOOK_SECRET="your-webhook-secret-here"
+
+# Generate timestamp
+TIMESTAMP=$(date +%s000)
+
+# Request body (use test-requests/ingest-example.json or create your own)
+BODY=$(cat test-requests/ingest-example.json | jq -c .)
+
+# Generate HMAC signature
+PAYLOAD="${TIMESTAMP}.${BODY}"
+SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+
+# Make request
+curl -X POST "${API_URL}/api/ingest" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: ${API_KEY}" \
+  -H "x-timestamp: ${TIMESTAMP}" \
+  -H "x-signature: ${SIGNATURE}" \
+  -d "$BODY"
+```
+
+**GET /api/topics** - List all topics:
+
+```bash
+curl -X GET "http://localhost:3000/api/topics"
+```
+
+**GET /api/topics** - List topics with filters:
+
+```bash
+# Filter by locale
+curl -X GET "http://localhost:3000/api/topics?locale=en"
+
+# Filter by tag
+curl -X GET "http://localhost:3000/api/topics?tag=security"
+
+# With pagination
+curl -X GET "http://localhost:3000/api/topics?page=1&limit=10"
+
+# Combined filters
+curl -X GET "http://localhost:3000/api/topics?locale=en&tag=authentication&page=1&limit=20"
+```
+
+**GET /api/topics/[slug]** - Get a specific topic:
+
+```bash
+curl -X GET "http://localhost:3000/api/topics/how-to-reset-password"
+```
+
+**POST /api/revalidate** - Trigger cache revalidation:
+
+```bash
+#!/bin/bash
+
+# Configuration
+API_URL="http://localhost:3000"
+API_KEY="your-api-key-here"
+WEBHOOK_SECRET="your-webhook-secret-here"
+
+# Generate timestamp
+TIMESTAMP=$(date +%s000)
+
+# Request body
+BODY='{"tag":"topics"}'
+
+# Generate HMAC signature
+PAYLOAD="${TIMESTAMP}.${BODY}"
+SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+
+# Make request
+curl -X POST "${API_URL}/api/revalidate" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: ${API_KEY}" \
+  -H "x-timestamp: ${TIMESTAMP}" \
+  -H "x-signature: ${SIGNATURE}" \
+  -d "$BODY"
+```
+
+#### PowerShell Examples (Windows)
+
+**POST /api/ingest**:
+
+```powershell
+# Configuration
+$API_URL = "http://localhost:3000"
+$API_KEY = "your-api-key-here"
+$WEBHOOK_SECRET = "your-webhook-secret-here"
+
+# Generate timestamp
+$TIMESTAMP = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()
+
+# Read request body
+$BODY = Get-Content test-requests/ingest-example.json -Raw | ConvertFrom-Json | ConvertTo-Json -Compress -Depth 10
+
+# Generate HMAC signature
+$PAYLOAD = "${TIMESTAMP}.${BODY}"
+$hmac = New-Object System.Security.Cryptography.HMACSHA256
+$hmac.Key = [Text.Encoding]::UTF8.GetBytes($WEBHOOK_SECRET)
+$hash = $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($PAYLOAD))
+$SIGNATURE = [BitConverter]::ToString($hash).Replace("-", "").ToLower()
+
+# Make request
+$headers = @{
+    "Content-Type" = "application/json"
+    "x-api-key" = $API_KEY
+    "x-timestamp" = $TIMESTAMP
+    "x-signature" = $SIGNATURE
+}
+
+Invoke-RestMethod -Uri "${API_URL}/api/ingest" -Method Post -Headers $headers -Body $BODY
+```
+
+**GET /api/topics**:
+
+```powershell
+# List all topics
+Invoke-RestMethod -Uri "http://localhost:3000/api/topics" -Method Get
+
+# With filters
+Invoke-RestMethod -Uri "http://localhost:3000/api/topics?locale=en&tag=security&page=1&limit=10" -Method Get
+```
+
+**GET /api/topics/[slug]**:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3000/api/topics/how-to-reset-password" -Method Get
+```
+
+#### Generating x-signature Header
+
+The `x-signature` header is critical for authentication. Here's how to generate it:
+
+**Algorithm**:
+1. Get current timestamp in milliseconds: `timestamp = Date.now()`
+2. Stringify your request body: `body = JSON.stringify(payload)`
+3. Create message: `message = timestamp + "." + body`
+4. Compute HMAC-SHA256: `signature = HMAC-SHA256(INGEST_WEBHOOK_SECRET, message)`
+5. Convert to hexadecimal string
+
+**Bash/Linux**:
+```bash
+TIMESTAMP=$(date +%s000)
+BODY='{"tag":"topics"}'
+PAYLOAD="${TIMESTAMP}.${BODY}"
+SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+```
+
+**Node.js**:
+```javascript
+const crypto = require('crypto');
+const timestamp = Date.now().toString();
+const body = JSON.stringify(payload);
+const message = `${timestamp}.${body}`;
+const signature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(message).digest('hex');
+```
+
+**Python**:
+```python
+import hmac
+import hashlib
+import time
+import json
+
+timestamp = str(int(time.time() * 1000))
+body = json.dumps(payload)
+message = f"{timestamp}.{body}"
+signature = hmac.new(WEBHOOK_SECRET.encode(), message.encode(), hashlib.sha256).hexdigest()
+```
+
+**Important Notes**:
+- The signature must be computed on the **exact** body string that will be sent
+- Whitespace and formatting matter - use the same JSON serialization
+- The timestamp must be within ±5 minutes of server time
+- Use the raw body string, not a parsed object
+
 ## Project Structure
 
 ```
