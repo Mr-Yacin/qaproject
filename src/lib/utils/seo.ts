@@ -2,6 +2,17 @@ import { Metadata } from 'next';
 import { UnifiedTopic } from '@/types/api';
 
 /**
+ * Helper function to safely convert a date to ISO string
+ * Handles both Date objects and ISO string dates from API
+ */
+function toISOString(date: Date | string): string {
+    if (typeof date === 'string') {
+        return date;
+    }
+    return date.toISOString();
+}
+
+/**
  * Generates comprehensive metadata for topic pages including Open Graph and Twitter cards
  * @param data - Unified topic data from the API
  * @param baseUrl - Base URL of the site (defaults to NEXT_PUBLIC_SITE_URL or localhost)
@@ -58,8 +69,8 @@ export function generateTopicMetadata(
             siteName: 'Q&A CMS',
             type: 'article',
             locale: topic.locale,
-            publishedTime: topic.createdAt.toISOString(),
-            modifiedTime: topic.updatedAt.toISOString(),
+            publishedTime: toISOString(topic.createdAt),
+            modifiedTime: toISOString(topic.updatedAt),
             tags: topic.tags,
         },
 
@@ -79,8 +90,8 @@ export function generateTopicMetadata(
 
         // Additional meta tags
         other: {
-            'article:published_time': topic.createdAt.toISOString(),
-            'article:modified_time': topic.updatedAt.toISOString(),
+            'article:published_time': toISOString(topic.createdAt),
+            'article:modified_time': toISOString(topic.updatedAt),
             'article:tag': topic.tags.join(','),
         },
     };
@@ -184,8 +195,8 @@ export function generateArticleSchema(
         headline: topic.title,
         description: description || topic.title,
         url,
-        datePublished: topic.createdAt.toISOString(),
-        dateModified: topic.updatedAt.toISOString(),
+        datePublished: toISOString(topic.createdAt),
+        dateModified: toISOString(topic.updatedAt),
         author: {
             '@type': 'Organization',
             name: 'Q&A CMS',

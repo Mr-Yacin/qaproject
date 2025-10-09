@@ -9,6 +9,7 @@ import {
 } from '@/lib/utils/seo';
 import FAQAccordion from '@/components/public/FAQAccordion';
 import BackToTop from '@/components/public/BackToTop';
+import { ArticleContent } from '@/components/ui/article-content';
 
 interface TopicPageProps {
   params: {
@@ -77,10 +78,11 @@ export default async function TopicPage({ params }: TopicPageProps) {
         <div className="mb-4">
           {/* Tags */}
           {topic.tags && topic.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-4" role="list" aria-label="Topic tags">
               {topic.tags.map((tag) => (
                 <span
                   key={tag}
+                  role="listitem"
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700"
                 >
                   {tag}
@@ -104,19 +106,20 @@ export default async function TopicPage({ params }: TopicPageProps) {
 
         {/* Metadata */}
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-          <time dateTime={topic.updatedAt.toString()}>
+          <time dateTime={typeof topic.updatedAt === 'string' ? topic.updatedAt : topic.updatedAt.toISOString()}>
             Updated: {new Date(topic.updatedAt).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
             })}
           </time>
-          <span className="inline-flex items-center">
+          <span className="inline-flex items-center" aria-label={`Language: ${topic.locale.toUpperCase()}`}>
             <svg
               className="w-4 h-4 mr-1"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -132,18 +135,19 @@ export default async function TopicPage({ params }: TopicPageProps) {
 
       {/* Article Content */}
       {article && article.content && (
-        <article className="mb-12 md:mb-16">
-          <div 
+        <article className="mb-12 md:mb-16" aria-labelledby="article-content">
+          <h2 id="article-content" className="sr-only">Article Content</h2>
+          <ArticleContent 
+            content={article.content}
             className="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal"
-            dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </article>
       )}
 
       {/* FAQ Section */}
       {sortedFaqItems.length > 0 && (
-        <section className="mb-12 md:mb-16">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+        <section className="mb-12 md:mb-16" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
             Frequently Asked Questions
           </h2>
           <FAQAccordion items={sortedFaqItems} />

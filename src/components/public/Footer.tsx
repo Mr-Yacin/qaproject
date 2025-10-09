@@ -19,21 +19,21 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-gray-200 bg-white">
+    <footer className="border-t border-gray-200 bg-white" role="contentinfo">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         {/* Footer links */}
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:gap-12">
+        <nav className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:gap-12" aria-label="Footer navigation">
           {/* Product */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
               Product
             </h3>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-3" role="list">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-primary-600"
+                    className="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 py-1 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                   >
                     {link.name}
                   </Link>
@@ -47,12 +47,12 @@ export default function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
               Company
             </h3>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-3" role="list">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-primary-600"
+                    className="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 py-1 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                   >
                     {link.name}
                   </Link>
@@ -66,12 +66,12 @@ export default function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
               Legal
             </h3>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-3" role="list">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 transition-colors hover:text-primary-600"
+                    className="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 py-1 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
                   >
                     {link.name}
                   </Link>
@@ -79,7 +79,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-        </div>
+        </nav>
 
         {/* Copyright */}
         <div className="mt-8 border-t border-gray-200 pt-8">

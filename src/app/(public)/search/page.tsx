@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: 'Search through our collection of Q&A articles and topics',
 };
 
+// Mark as dynamic since SearchResults fetches data client-side
+export const dynamic = 'force-dynamic';
+
 /**
  * Search results page
  * Requirements: 9.1, 9.2, 9.3

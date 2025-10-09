@@ -26,6 +26,10 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
+# Build argument for DATABASE_URL (needed for static generation)
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 # Build Next.js application
 RUN npm run build
 

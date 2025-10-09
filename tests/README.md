@@ -1,93 +1,55 @@
-# Test Setup Guide
+# Test Code Documentation
 
 ## Overview
 
-This project uses Vitest for testing with a PostgreSQL database. The test utilities provide helpers for database seeding, cleanup, and authenticated API requests.
+This directory contains all test code for the project. For comprehensive testing guides, setup instructions, and best practices, see the [Testing Documentation](../docs/testing/).
 
-## Prerequisites
+## Test Structure
 
-1. **PostgreSQL Database**: Ensure PostgreSQL is running and accessible
-2. **Environment Variables**: Configure test database connection
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file (or use `.env.example` as a template) with the following variables:
-
-```bash
-# Main database
-DATABASE_URL="postgresql://user:password@localhost:5432/qa_article_faq?schema=public"
-
-# Test database (optional - uses DATABASE_URL if not set)
-TEST_DATABASE_URL="postgresql://user:password@localhost:5432/qa_article_faq_test?schema=public"
-
-# Security credentials for testing
-INGEST_API_KEY="test-api-key"
-INGEST_WEBHOOK_SECRET="test-webhook-secret"
+```
+tests/
+├── setup.ts                    # Global test setup (runs before all tests)
+├── utils/
+│   ├── test-helpers.ts         # Test utility functions
+│   └── test-helpers.test.ts    # Tests for test utilities
+├── unit/                       # Unit tests
+│   ├── api/                    # API logic unit tests
+│   └── lib/                    # Library unit tests
+├── integration/                # Integration tests
+│   └── api/                    # API integration tests
+└── e2e/                        # End-to-end tests
+    ├── admin-dashboard.test.ts # Admin dashboard E2E tests
+    └── public-pages.test.ts    # Public pages E2E tests
 ```
 
-### Database Setup
-
-1. Create the test database:
-```bash
-createdb qa_article_faq_test
-```
-
-2. Run migrations on the test database:
-```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/qa_article_faq_test?schema=public" npx prisma migrate deploy
-```
-
-## Running Tests
+## Quick Start
 
 ```bash
 # Run all tests
 npm test
 
-# Run tests in a specific file
-npm test tests/utils/test-helpers.test.ts
+# Run tests once without watch mode
+npm test -- --run
+
+# Run specific test file
+npm test tests/unit/api/topics.test.ts
 
 # Run tests with coverage
 npm test -- --coverage
-
-# Run tests in watch mode (default)
-npm test
-
-# Run tests once without watch mode
-npm test -- --run
 ```
 
-## Test Utilities
+## Test Utilities API
 
-### `generateTestSignature(timestamp, body)`
+### Database Helpers
 
-Generates a valid HMAC-SHA256 signature for authenticated requests.
+#### `cleanDatabase()`
+Removes all data from the test database. Automatically called before each test.
 
 ```typescript
-const timestamp = Date.now().toString();
-const body = JSON.stringify({ test: 'data' });
-const signature = generateTestSignature(timestamp, body);
+await cleanDatabase();
 ```
 
-### `authenticatedRequest(url, payload, method)`
-
-Makes an authenticated API request with proper HMAC headers.
-
-```typescript
-const response = await authenticatedRequest('/api/ingest', {
-  topic: { slug: 'test', title: 'Test', locale: 'en', tags: [] },
-  mainQuestion: { text: 'What is this?' },
-  article: { content: 'Content', status: 'PUBLISHED' },
-  faqItems: []
-});
-
-console.log(response.status); // 200
-console.log(response.body);   // Response data
-```
-
-### `seedTopic(data)`
-
+#### `seedTopic(data)`
 Seeds a single topic with optional related entities.
 
 ```typescript
@@ -106,8 +68,7 @@ const topic = await seedTopic({
 });
 ```
 
-### `seedTopics(count | dataArray)`
-
+#### `seedTopics(count | dataArray)`
 Seeds multiple topics at once.
 
 ```typescript
@@ -121,31 +82,35 @@ const topics = await seedTopics([
 ]);
 ```
 
-### `cleanDatabase()`
+### Authentication Helpers
 
-Removes all data from the test database. This is automatically called before each test via the setup file.
+#### `generateTestSignature(timestamp, body)`
+Generates a valid HMAC-SHA256 signature for authenticated requests.
 
 ```typescript
-await cleanDatabase();
+const timestamp = Date.now().toString();
+const body = JSON.stringify({ test: 'data' });
+const signature = generateTestSignature(timestamp, body);
 ```
 
-## Test Structure
+#### `authenticatedRequest(url, payload, method)`
+Makes an authenticated API request with proper HMAC headers.
 
-```
-tests/
-├── setup.ts                    # Global test setup (runs before all tests)
-├── utils/
-│   ├── test-helpers.ts         # Test utility functions
-│   └── test-helpers.test.ts    # Tests for test utilities
-└── api/
-    ├── ingest.test.ts          # Tests for /api/ingest endpoint
-    ├── topics.test.ts          # Tests for /api/topics endpoints
-    └── revalidate.test.ts      # Tests for /api/revalidate endpoint
+```typescript
+const response = await authenticatedRequest('/api/ingest', {
+  topic: { slug: 'test', title: 'Test', locale: 'en', tags: [] },
+  mainQuestion: { text: 'What is this?' },
+  article: { content: 'Content', status: 'PUBLISHED' },
+  faqItems: []
+});
+
+console.log(response.status); // 200
+console.log(response.body);   // Response data
 ```
 
 ## Writing Tests
 
-Example test structure:
+### Basic Test Structure
 
 ```typescript
 import { describe, test, expect } from 'vitest';
@@ -171,33 +136,32 @@ describe('POST /api/ingest', () => {
 });
 ```
 
+### Test Isolation
+
+Each test is automatically isolated through the `cleanDatabase()` function that runs before each test via `tests/setup.ts`. This ensures:
+- No test pollution between tests
+- Predictable test state
+- Reliable test results
+
+## Testing Guides
+
+For detailed information about testing, see:
+
+- **[Unit Testing Guide](../docs/testing/unit-testing.md)** - Setup, configuration, and unit testing best practices
+- **[E2E Testing Guide](../docs/testing/e2e-testing.md)** - End-to-end testing for public pages and admin dashboard
+- **[Docker Testing Guide](../docs/testing/docker-testing.md)** - Testing in Docker containers
+- **[Manual Testing Guide](../docs/testing/manual-testing.md)** - Manual testing procedures and checklists
+
+## Configuration
+
+See the [Unit Testing Guide](../docs/testing/unit-testing.md#configuration) for:
+- Environment variable setup
+- Database configuration
+- Test database setup
+
 ## Troubleshooting
 
-### Database Connection Errors
-
-If you see "Can't reach database server" errors:
-
-1. Ensure PostgreSQL is running
-2. Verify DATABASE_URL or TEST_DATABASE_URL is correct
-3. Check that the database exists
-4. Verify user credentials and permissions
-
-### Migration Errors
-
-If schema is out of sync:
-
-```bash
-# Reset test database
-DATABASE_URL="your-test-db-url" npx prisma migrate reset
-
-# Or deploy migrations
-DATABASE_URL="your-test-db-url" npx prisma migrate deploy
-```
-
-### Test Isolation Issues
-
-Each test should be isolated. The `cleanDatabase()` function runs before each test automatically via `tests/setup.ts`. If you're experiencing test pollution:
-
-1. Check that `beforeEach` hook is running
-2. Verify no tests are skipping cleanup
-3. Ensure transactions are properly committed/rolled back
+See the [Unit Testing Guide](../docs/testing/unit-testing.md#troubleshooting) for:
+- Database connection errors
+- Migration errors
+- Test isolation issues

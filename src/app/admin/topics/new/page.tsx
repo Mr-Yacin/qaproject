@@ -5,6 +5,7 @@ import { TopicForm } from '@/components/admin/TopicForm';
 import { createOrUpdateTopic } from '@/lib/api/ingest';
 import { revalidateTopicCache } from '@/lib/api/ingest';
 import { useToast } from '@/hooks/use-toast';
+import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 import type { TopicFormSchema } from '@/lib/utils/validation';
 import type { IngestPayload } from '@/types/api';
 
@@ -32,25 +33,35 @@ export default function NewTopicPage() {
           tags: data.tags,
         },
         mainQuestion: {
-          text: data.title, // Use title as default main question
+          text: data.mainQuestion,
         },
         article: {
-          content: '', // Empty content for now, will be added in later tasks
-          status: 'DRAFT',
+          content: data.articleContent,
+          status: data.articleStatus,
         },
-        faqItems: [],
+        faqItems: data.faqItems.map((item) => ({
+          question: item.question,
+          answer: item.answer,
+          order: item.order,
+        })),
       };
 
       // Create the topic
-      const result = await createOrUpdateTopic(payload);
+      await createOrUpdateTopic(payload);
 
-      // Revalidate cache
+      // Show loading toast for revalidation
+      toast({
+        title: 'Revalidating cache...',
+        description: 'Updating cached content',
+      });
+
+      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
       await revalidateTopicCache(data.slug);
 
       // Show success message
       toast({
         title: 'Success',
-        description: 'Topic created successfully',
+        description: 'Topic created and cache revalidated successfully',
       });
 
       // Redirect to topics list
@@ -66,17 +77,19 @@ export default function NewTopicPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Create New Topic</h1>
-        <p className="text-gray-600">
-          Fill in the basic information for your new topic. You can add article content and FAQs later.
-        </p>
-      </div>
+    <ClientAuthCheck>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Create New Topic</h1>
+          <p className="text-gray-600">
+            Fill in the basic information for your new topic. You can add article content and FAQs later.
+          </p>
+        </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <TopicForm mode="create" onSubmit={handleSubmit} />
+        <div className="bg-white rounded-lg shadow p-6">
+          <TopicForm mode="create" onSubmit={handleSubmit} />
+        </div>
       </div>
-    </div>
+    </ClientAuthCheck>
   );
 }

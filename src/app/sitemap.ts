@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next';
 import { getTopics } from '@/lib/api/topics';
 
+// Force dynamic rendering (no static generation at build time)
+export const dynamic = 'force-dynamic';
+
 /**
  * Generates sitemap.xml for search engine crawlers
  * Includes homepage, topics listing, and all published topic pages
@@ -10,8 +13,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
   try {
-    // Fetch all topics (with a high limit to get all published topics)
-    const topicsData = await getTopics({ limit: 10000, page: 1 });
+    // Fetch topics directly from database during build
+    const { ContentRepository } = await import('@/lib/repositories/content.repository');
+    const { ContentService } = await import('@/lib/services/content.service');
+    
+    const repository = new ContentRepository();
+    const contentService = new ContentService(repository);
+    const topicsData = await contentService.listTopics({ limit: 10000, page: 1 });
     
     // Generate sitemap entries for all topics
     const topicEntries: MetadataRoute.Sitemap = topicsData.items

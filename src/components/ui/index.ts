@@ -14,3 +14,7 @@ export { Container } from "./container"
 export { Section } from "./section"
 export { Grid } from "./grid"
 export { Stack } from "./stack"
+
+// Optimized components
+export { OptimizedImage } from "./optimized-image"
+export { ArticleContent } from "./article-content"

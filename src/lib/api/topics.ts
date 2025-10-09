@@ -2,6 +2,32 @@ import { PaginatedTopics, UnifiedTopic, TopicFilters } from '@/types/api';
 import { APIError, handleAPIResponse } from './errors';
 
 /**
+ * Determines the base URL for API calls based on the environment
+ * @returns Base URL string (empty for browser, full URL for server)
+ * Requirements: 2.1, 2.2
+ */
+function getBaseUrl(): string {
+  // Browser environment - use relative URLs
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  
+  // Server environment - need absolute URLs for SSR/SSG
+  // 1. Check for explicit API URL (for production)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // 2. Check for Vercel URL (automatic in Vercel deployments)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // 3. Default to localhost for local development
+  return 'http://localhost:3000';
+}
+
+/**
  * Fetches a paginated list of topics with optional filtering
  * @param params - Optional filters for locale, tag, page, and limit
  * @returns Paginated topics response
@@ -25,7 +51,10 @@ export async function getTopics(params?: Partial<TopicFilters>): Promise<Paginat
       searchParams.set('limit', params.limit.toString());
     }
     
-    const url = `/api/topics${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}/api/topics${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    
+    console.log('[API Client] Fetching topics:', { url, params });
     
     const response = await fetch(url, {
       method: 'GET',
@@ -33,14 +62,32 @@ export async function getTopics(params?: Partial<TopicFilters>): Promise<Paginat
         'Content-Type': 'application/json',
       },
       // Enable Next.js cache tagging for revalidation
+      // ISR: Revalidate every 300 seconds (5 minutes) or on-demand via revalidateTag
       next: { 
         tags: ['topics'],
-        revalidate: 60 // Revalidate every 60 seconds
+        revalidate: 300 // ISR: Revalidate every 5 minutes
       }
     });
     
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unable to read error response');
+      console.error('[API Client] Topics API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url,
+        params,
+        errorText
+      });
+    }
+    
     return handleAPIResponse<PaginatedTopics>(response);
   } catch (error) {
+    console.error('[API Client] getTopics error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      params
+    });
+    
     if (error instanceof APIError) {
       throw error;
     }
@@ -66,15 +113,19 @@ export async function getTopicBySlug(slug: string): Promise<UnifiedTopic> {
       throw new APIError('Invalid slug parameter', 400);
     }
     
-    const response = await fetch(`/api/topics/${encodeURIComponent(slug)}`, {
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}/api/topics/${encodeURIComponent(slug)}`;
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
       // Enable Next.js cache tagging for revalidation
+      // ISR: Revalidate every 300 seconds (5 minutes) or on-demand via revalidateTag
       next: { 
         tags: ['topics', `topic:${slug}`],
-        revalidate: 60 // Revalidate every 60 seconds
+        revalidate: 300 // ISR: Revalidate every 5 minutes
       }
     });
     

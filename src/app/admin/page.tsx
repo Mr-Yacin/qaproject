@@ -1,9 +1,12 @@
+'use client';
+
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getTopics } from '@/lib/api/topics';
 import { FileText, FilePlus, Eye, PenSquare } from 'lucide-react';
+import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 
 async function DashboardStats() {
   try {
@@ -96,7 +99,8 @@ function StatsLoadingSkeleton() {
 
 export default function AdminDashboardPage() {
   return (
-    <div>
+    <ClientAuthCheck>
+      <div>
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -119,7 +123,7 @@ export default function AdminDashboardPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link href="/admin/topics/new">
-            <Button className="w-full justify-start h-auto py-4" size="lg">
+            <Button className="w-full justify-start h-auto py-4 transition-all duration-200 hover:scale-105" size="lg">
               <FilePlus className="w-5 h-5 mr-3" />
               <div className="text-left">
                 <div className="font-semibold">Create New Topic</div>
@@ -133,7 +137,7 @@ export default function AdminDashboardPage() {
           <Link href="/admin/topics">
             <Button
               variant="outline"
-              className="w-full justify-start h-auto py-4"
+              className="w-full justify-start h-auto py-4 transition-all duration-200 hover:scale-105"
               size="lg"
             >
               <FileText className="w-5 h-5 mr-3" />
@@ -149,7 +153,7 @@ export default function AdminDashboardPage() {
           <Link href="/">
             <Button
               variant="outline"
-              className="w-full justify-start h-auto py-4"
+              className="w-full justify-start h-auto py-4 transition-all duration-200 hover:scale-105"
               size="lg"
             >
               <Eye className="w-5 h-5 mr-3" />
@@ -205,5 +209,6 @@ export default function AdminDashboardPage() {
         </div>
       </Card>
     </div>
+    </ClientAuthCheck>
   );
 }

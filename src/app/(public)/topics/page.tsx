@@ -10,6 +10,9 @@ import { Suspense } from 'react';
 // Generate metadata for SEO
 export const metadata: Metadata = generateTopicsListMetadata();
 
+// Mark as dynamic since we use searchParams
+export const dynamic = 'force-dynamic';
+
 interface TopicsPageProps {
   searchParams: {
     page?: string;
@@ -20,37 +23,64 @@ interface TopicsPageProps {
 
 /**
  * Topics listing page with pagination and filtering
- * Requirements: 1.2, 7.1, 7.2, 7.3, 9.5
+ * Requirements: 1.2, 7.1, 7.2, 7.3, 9.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
  */
 export default async function TopicsPage({ searchParams }: TopicsPageProps) {
-  const currentPage = parseInt(searchParams.page || '1', 10);
-  const locale = searchParams.locale;
-  const tag = searchParams.tag;
-  
-  // Fetch topics with filters
-  const topicsData = await getTopics({
-    page: currentPage,
-    limit: 12,
-    locale,
-    tag,
-  });
+  try {
+    const currentPage = parseInt(searchParams.page || '1', 10);
+    const locale = searchParams.locale;
+    const tag = searchParams.tag;
+    
+    // Fetch topics with filters - with error handling fallback
+    const topicsData = await getTopics({
+      page: currentPage,
+      limit: 12,
+      locale,
+      tag,
+    }).catch((error) => {
+      console.error('[TopicsPage] Failed to fetch topics:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        params: { page: currentPage, limit: 12, locale, tag }
+      });
+      // Return empty data structure as fallback
+      return {
+        items: [],
+        total: 0,
+        totalPages: 0,
+        page: currentPage,
+        limit: 12,
+      };
+    });
 
-  const { items, total, totalPages } = topicsData;
+    const { items, total, totalPages } = topicsData;
 
-  // Fetch all topics to get available filters (without pagination)
-  const allTopicsData = await getTopics({ limit: 1000 });
-  
-  // Extract unique tags and locales
-  const allTags = new Set<string>();
-  const allLocales = new Set<string>();
-  
-  allTopicsData.items.forEach((item) => {
-    item.topic.tags.forEach((t) => allTags.add(t));
-    allLocales.add(item.topic.locale);
-  });
-  
-  const availableTags = Array.from(allTags).sort();
-  const availableLocales = Array.from(allLocales).sort();
+    // Fetch all topics to get available filters (without pagination) - with error handling fallback
+    // Note: API limit is max 100, so we fetch the maximum allowed
+    const allTopicsData = await getTopics({ limit: 100 }).catch((error) => {
+      console.error('[TopicsPage] Failed to fetch filter data:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      // Return empty data structure as fallback
+      return {
+        items: [],
+        total: 0,
+        totalPages: 0,
+        page: 1,
+        limit: 100,
+      };
+    });
+    
+    // Extract unique tags and locales
+    const allTags = new Set<string>();
+    const allLocales = new Set<string>();
+    
+    allTopicsData.items.forEach((item) => {
+      item.topic.tags.forEach((t) => allTags.add(t));
+      allLocales.add(item.topic.locale);
+    });
+    
+    const availableTags = Array.from(allTags).sort();
+    const availableLocales = Array.from(allLocales).sort();
 
   return (
     <div className="py-12 md:py-16 lg:py-20">
@@ -84,7 +114,7 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                 ...(tag && { tag }),
                 ...(searchParams.page && { page: searchParams.page })
               }).toString()}`}
-              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 hover:bg-primary-200 transition-colors"
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-200 transition-colors min-h-[44px]"
             >
               Locale: {locale.toUpperCase()}
               <span className="text-primary-900">×</span>
@@ -96,7 +126,7 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                 ...(locale && { locale }),
                 ...(searchParams.page && { page: searchParams.page })
               }).toString()}`}
-              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700 hover:bg-primary-200 transition-colors"
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-200 transition-colors min-h-[44px]"
             >
               Tag: {tag}
               <span className="text-primary-900">×</span>
@@ -131,12 +161,12 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                     ...(locale && { locale }),
                     ...(tag && { tag })
                   }).toString()}`}
-                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
                 >
                   ← Previous
                 </Link>
               ) : (
-                <span className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                <span className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed min-h-[44px]">
                   ← Previous
                 </span>
               )}
@@ -169,7 +199,7 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                   return pageNum === currentPage ? (
                     <span
                       key={pageNum}
-                      className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white min-h-[44px] min-w-[44px]"
                     >
                       {pageNum}
                     </span>
@@ -181,7 +211,7 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                         ...(locale && { locale }),
                         ...(tag && { tag })
                       }).toString()}`}
-                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] min-w-[44px]"
                     >
                       {pageNum}
                     </Link>
@@ -202,12 +232,12 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
                     ...(locale && { locale }),
                     ...(tag && { tag })
                   }).toString()}`}
-                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
                 >
                   Next →
                 </Link>
               ) : (
-                <span className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                <span className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed min-h-[44px]">
                   Next →
                 </span>
               )}
@@ -233,5 +263,16 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
         </div>
       )}
     </div>
-  );
+    );
+  } catch (error) {
+    // Log the error for debugging
+    console.error('[TopicsPage] Unexpected error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      searchParams,
+    });
+    
+    // Re-throw to be caught by error boundary
+    throw error;
+  }
 }

@@ -58,6 +58,7 @@ export function RichTextEditor({
       }),
     ],
     content,
+    immediatelyRender: false, // Fix SSR hydration mismatch
     editorProps: {
       attributes: {
         class:

@@ -376,98 +376,158 @@
     - Add image embedding in editor
     - _Requirements: 5.8_
 
-- [ ] 15. Build FAQ manager component
-  - [ ] 15.1 Create FAQManager component
+- [x] 15. Build FAQ manager component
+
+
+
+
+  - [x] 15.1 Create FAQManager component
+
+
     - Create `components/admin/FAQManager.tsx`
     - Display list of FAQ items with add/edit/delete buttons
     - Implement inline editing for question and answer fields
     - Add confirmation dialog for delete
     - _Requirements: 6.1, 6.2, 6.3, 6.5, 6.6_
   
-  - [ ] 15.2 Add drag-and-drop reordering
+  - [x] 15.2 Add drag-and-drop reordering
+
+
     - Install and configure drag-and-drop library (dnd-kit or react-beautiful-dnd)
     - Implement drag-and-drop to reorder FAQ items
     - Update order field on drop
     - _Requirements: 6.4_
   
-  - [ ] 15.3 Integrate FAQManager into TopicForm
+  - [x] 15.3 Integrate FAQManager into TopicForm
+
+
     - Add FAQ section to TopicForm
     - Handle FAQ items in form submission
     - _Requirements: 6.7_
 
-- [ ] 16. Implement cache revalidation
-  - [ ] 16.1 Add revalidation after content updates
+- [x] 16. Implement cache revalidation
+
+
+
+
+  - [x] 16.1 Add revalidation after content updates
+
+
     - Call revalidateCache() after successful topic create/update
     - Revalidate 'topics' tag and specific 'topic:[slug]' tag
     - Show loading state during revalidation
     - _Requirements: 10.2_
 
-- [ ] 17. Add responsive design polish
-  - [ ] 17.1 Test and refine mobile layout
+- [x] 17. Add responsive design polish
+
+
+
+
+
+  - [x] 17.1 Test and refine mobile layout
+
+
     - Test all pages on mobile devices (< 768px)
     - Ensure hamburger menu works properly
     - Verify touch targets are at least 44x44 pixels
     - Test form inputs on mobile
     - _Requirements: 1.4, 7.1, 7.4, 7.5, 7.8_
   
-  - [ ] 17.2 Test and refine tablet layout
+
+
+  - [x] 17.2 Test and refine tablet layout
+
     - Test all pages on tablet (768px - 1024px)
     - Verify adaptive navigation and layouts
     - Test device rotation
     - _Requirements: 1.5, 7.2, 7.6, 7.7_
+
   
-  - [ ] 17.3 Test and refine desktop layout
+  - [x] 17.3 Test and refine desktop layout
+
     - Test all pages on desktop (> 1024px)
     - Verify full navigation and sidebar layouts
     - Test hover effects and transitions
     - _Requirements: 1.6, 7.3, 8.2, 8.4_
 
-- [ ] 18. Performance optimization
-  - [ ] 18.1 Optimize images
+- [x] 18. Performance optimization
+
+
+
+
+
+
+
+  - [x] 18.1 Optimize images
+
     - Replace <img> tags with Next.js <Image> component
     - Configure image domains in next.config.js
     - Add lazy loading for below-the-fold images
     - _Requirements: 10.1, 10.5_
+
   
-  - [ ] 18.2 Implement code splitting
+  - [x] 18.2 Implement code splitting
+
     - Use dynamic imports for heavy components (RichTextEditor, FAQManager)
     - Verify route-based code splitting is working
     - _Requirements: 10.3, 10.4, 10.6_
   
-  - [ ] 18.3 Configure caching strategy
+
+  - [x] 18.3 Configure caching strategy
+
     - Set up ISR for topic pages with revalidation
     - Configure fetch cache tags for topics
     - Test cache revalidation flow
     - _Requirements: 10.1, 10.2, 10.7_
 
-- [ ] 19. Accessibility improvements
-  - [ ] 19.1 Add ARIA labels and semantic HTML
+- [x] 19. Accessibility improvements
+
+
+
+
+
+  - [x] 19.1 Add ARIA labels and semantic HTML
     - Review all components for semantic HTML usage
     - Add ARIA labels to interactive elements
     - Ensure proper heading hierarchy
     - _Requirements: All requirements benefit from accessibility_
   
-  - [ ] 19.2 Implement keyboard navigation
+  - [x] 19.2 Implement keyboard navigation
+
+
     - Test tab navigation through all interactive elements
     - Add focus styles to all focusable elements
     - Implement keyboard shortcuts where appropriate
     - _Requirements: All requirements benefit from accessibility_
   
-  - [ ] 19.3 Test with screen readers
+
+
+  - [x] 19.3 Test with screen readers
+
     - Test public pages with screen reader
     - Test admin dashboard with screen reader
     - Fix any accessibility issues found
     - _Requirements: All requirements benefit from accessibility_
 
-- [ ] 20. Final integration and testing
-  - [ ] 20.1 End-to-end testing of public pages
+- [x] 20. Final integration and testing
+
+
+
+
+
+  - [x] 20.1 End-to-end testing of public pages
+
+
     - Test homepage, topics listing, and topic detail pages
     - Verify SEO meta tags and structured data
     - Test search functionality
     - Test on multiple devices and browsers
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 9.1, 9.2_
   
-  - [ ] 20.2 End-to-end testing of admin dashboard
+
+
+  - [x] 20.2 End-to-end testing of admin dashboard
+
     - Test login flow
     - Test creating a new topic with article and FAQs
     - Test editing an existing topic
@@ -475,7 +535,8 @@
     - Verify cache revalidation works
     - _Requirements: 3.1, 3.2, 4.3, 4.5, 4.7, 6.7, 10.2_
   
-  - [ ] 20.3 Performance testing
+  - [x] 20.3 Performance testing
+
     - Run Lighthouse audit on public pages
     - Verify performance score is at least 90
     - Test page load times on 3G connection

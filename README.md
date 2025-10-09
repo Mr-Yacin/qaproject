@@ -13,137 +13,63 @@ A secure, API-first backend for managing Q&A content, articles, and FAQs. Built 
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Environment Configuration](#environment-configuration)
-- [Database Setup](#database-setup)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
 - [API Documentation](#api-documentation)
   - [POST /api/ingest](#post-apiingest)
   - [GET /api/topics](#get-apitopics)
   - [GET /api/topics/[slug]](#get-apitopicsslug)
   - [POST /api/revalidate](#post-apirevalidate)
 - [Authentication](#authentication)
-- [Testing](#testing)
 - [Project Structure](#project-structure)
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-
-- Node.js 18+ 
-- PostgreSQL database (local or hosted like Neon/Supabase)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository and install dependencies:
+Get up and running in minutes:
 
 ```bash
+# Install dependencies
 npm install
-```
 
-2. Copy the environment example file:
-
-```bash
+# Set up environment
 cp .env.example .env
-```
+# Edit .env with your configuration
 
-3. Configure your environment variables (see [Environment Configuration](#environment-configuration))
-
-4. Set up the database:
-
-```bash
+# Set up database
 npx prisma migrate dev
-```
 
-5. Start the development server:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-The API will be available at `http://localhost:3000/api`
+Visit `http://localhost:3000/api/topics` to verify the API is running.
 
-## Environment Configuration
+For detailed setup instructions, see the [Getting Started Guide](docs/setup/getting-started.md).
 
-Create a `.env` file in the project root with the following variables:
+## Documentation
 
-### DATABASE_URL
+Comprehensive documentation is available in the `docs/` directory:
 
-PostgreSQL connection string for the main database.
+### Setup Guides
+- [Getting Started](docs/setup/getting-started.md) - Installation and first steps
+- [Environment Configuration](docs/setup/environment-setup.md) - Environment variables explained
+- [Database Setup](docs/setup/database-setup.md) - Database configuration and management
+- [Docker Setup](docs/setup/docker-setup.md) - Docker deployment and testing
 
-**Format**: `postgresql://[user]:[password]@[host]:[port]/[database]?schema=public`
+### Architecture
+- [Architecture Overview](docs/architecture/README.md) - System design and components
+- [Caching Strategy](docs/architecture/caching-strategy.md) - Cache implementation details
+- [Performance Optimization](docs/architecture/performance-optimization.md) - Performance features
+- [Accessibility](docs/architecture/accessibility.md) - Accessibility implementation
 
-**Example**:
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/qa_article_faq?schema=public"
-```
+### Testing
+- [Testing Guide](docs/testing/README.md) - How to run and write tests
+- [Unit Testing](docs/testing/unit-testing.md) - Unit test guidelines
+- [E2E Testing](docs/testing/e2e-testing.md) - End-to-end test guide
+- [Docker Testing](docs/testing/docker-testing.md) - Testing Docker deployments
 
-For hosted databases (Neon, Supabase), add SSL mode:
-```
-DATABASE_URL="postgresql://user:password@host.region.provider.com/database?sslmode=require"
-```
-
-### INGEST_API_KEY
-
-Static API key for authenticating webhook requests to `/api/ingest` and `/api/revalidate`.
-
-**Generate a secure key**:
-```bash
-openssl rand -base64 32
-```
-
-**Example**:
-```
-INGEST_API_KEY="dGhpc2lzYXNlY3VyZWFwaWtleWV4YW1wbGU="
-```
-
-### INGEST_WEBHOOK_SECRET
-
-Secret key used for HMAC-SHA256 signature verification. This ensures webhook payloads haven't been tampered with.
-
-**Generate a secure secret**:
-```bash
-openssl rand -base64 32
-```
-
-**Example**:
-```
-INGEST_WEBHOOK_SECRET="dGhpc2lzYXNlY3VyZXdlYmhvb2tzZWNyZXQ="
-```
-
-### TEST_DATABASE_URL (Optional)
-
-Separate database for running tests. If not provided, tests will use `DATABASE_URL`.
-
-```
-TEST_DATABASE_URL="postgresql://user:password@localhost:5432/qa_article_faq_test?schema=public"
-```
-
-## Database Setup
-
-### Run Migrations
-
-Apply database migrations to create the schema:
-
-```bash
-npx prisma migrate dev
-```
-
-### Generate Prisma Client
-
-The Prisma client is automatically generated during `npm install`, but you can regenerate it manually:
-
-```bash
-npx prisma generate
-```
-
-### View Database
-
-Open Prisma Studio to view and edit data:
-
-```bash
-npx prisma studio
-```
+### Reports
+- [Test Reports](docs/reports/README.md) - Test execution reports and audits
 
 ## API Documentation
 
@@ -511,257 +437,49 @@ curl -X POST http://localhost:3000/api/ingest \
 
 ## Testing
 
-### Run All Tests
+Run the test suite:
 
 ```bash
+# Run all tests
 npm test
-```
 
-### Run Tests in Watch Mode
+# Run with coverage
+npm run test:coverage
 
-```bash
+# Watch mode
 npm run test:watch
 ```
 
-### Run Tests with Coverage
-
-```bash
-npm run test:coverage
-```
-
-### Test Categories
-
-- **Security Tests**: Authentication, signature verification, timestamp validation
-- **Validation Tests**: Zod schema validation, malformed payloads
-- **Idempotency Tests**: Duplicate request handling
-- **Business Logic Tests**: Topic retrieval, filtering, pagination
-- **Integration Tests**: Complete ingestion flow, cache revalidation
-
-See `tests/README.md` for detailed testing documentation.
-
-### API Testing with curl
-
-The repository includes example payloads and a testing script in the `test-requests/` directory.
-
-#### Using the Test Script
-
-The easiest way to test the API is using the provided Node.js script:
-
-```bash
-# Set environment variables
-export API_URL="http://localhost:3000"
-export INGEST_API_KEY="your-api-key"
-export INGEST_WEBHOOK_SECRET="your-webhook-secret"
-
-# Test ingestion
-node test-requests/test-api.js ingest
-
-# Test with custom payload
-node test-requests/test-api.js ingest my-payload.json
-
-# Test revalidation
-node test-requests/test-api.js revalidate
-
-# Get a specific topic
-node test-requests/test-api.js get-topic how-to-reset-password
-
-# List topics with filters
-node test-requests/test-api.js list-topics --locale=en --tag=security
-```
-
-#### Manual curl Examples
-
-**POST /api/ingest** - Ingest content with authentication:
-
-```bash
-#!/bin/bash
-
-# Configuration
-API_URL="http://localhost:3000"
-API_KEY="your-api-key-here"
-WEBHOOK_SECRET="your-webhook-secret-here"
-
-# Generate timestamp
-TIMESTAMP=$(date +%s000)
-
-# Request body (use test-requests/ingest-example.json or create your own)
-BODY=$(cat test-requests/ingest-example.json | jq -c .)
-
-# Generate HMAC signature
-PAYLOAD="${TIMESTAMP}.${BODY}"
-SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
-
-# Make request
-curl -X POST "${API_URL}/api/ingest" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: ${API_KEY}" \
-  -H "x-timestamp: ${TIMESTAMP}" \
-  -H "x-signature: ${SIGNATURE}" \
-  -d "$BODY"
-```
-
-**GET /api/topics** - List all topics:
-
-```bash
-curl -X GET "http://localhost:3000/api/topics"
-```
-
-**GET /api/topics** - List topics with filters:
-
-```bash
-# Filter by locale
-curl -X GET "http://localhost:3000/api/topics?locale=en"
-
-# Filter by tag
-curl -X GET "http://localhost:3000/api/topics?tag=security"
-
-# With pagination
-curl -X GET "http://localhost:3000/api/topics?page=1&limit=10"
-
-# Combined filters
-curl -X GET "http://localhost:3000/api/topics?locale=en&tag=authentication&page=1&limit=20"
-```
-
-**GET /api/topics/[slug]** - Get a specific topic:
-
-```bash
-curl -X GET "http://localhost:3000/api/topics/how-to-reset-password"
-```
-
-**POST /api/revalidate** - Trigger cache revalidation:
-
-```bash
-#!/bin/bash
-
-# Configuration
-API_URL="http://localhost:3000"
-API_KEY="your-api-key-here"
-WEBHOOK_SECRET="your-webhook-secret-here"
-
-# Generate timestamp
-TIMESTAMP=$(date +%s000)
-
-# Request body
-BODY='{"tag":"topics"}'
-
-# Generate HMAC signature
-PAYLOAD="${TIMESTAMP}.${BODY}"
-SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
-
-# Make request
-curl -X POST "${API_URL}/api/revalidate" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: ${API_KEY}" \
-  -H "x-timestamp: ${TIMESTAMP}" \
-  -H "x-signature: ${SIGNATURE}" \
-  -d "$BODY"
-```
-
-#### PowerShell Examples (Windows)
-
-**POST /api/ingest**:
-
-```powershell
-# Configuration
-$API_URL = "http://localhost:3000"
-$API_KEY = "your-api-key-here"
-$WEBHOOK_SECRET = "your-webhook-secret-here"
-
-# Generate timestamp
-$TIMESTAMP = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()
-
-# Read request body
-$BODY = Get-Content test-requests/ingest-example.json -Raw | ConvertFrom-Json | ConvertTo-Json -Compress -Depth 10
-
-# Generate HMAC signature
-$PAYLOAD = "${TIMESTAMP}.${BODY}"
-$hmac = New-Object System.Security.Cryptography.HMACSHA256
-$hmac.Key = [Text.Encoding]::UTF8.GetBytes($WEBHOOK_SECRET)
-$hash = $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($PAYLOAD))
-$SIGNATURE = [BitConverter]::ToString($hash).Replace("-", "").ToLower()
-
-# Make request
-$headers = @{
-    "Content-Type" = "application/json"
-    "x-api-key" = $API_KEY
-    "x-timestamp" = $TIMESTAMP
-    "x-signature" = $SIGNATURE
-}
-
-Invoke-RestMethod -Uri "${API_URL}/api/ingest" -Method Post -Headers $headers -Body $BODY
-```
-
-**GET /api/topics**:
-
-```powershell
-# List all topics
-Invoke-RestMethod -Uri "http://localhost:3000/api/topics" -Method Get
-
-# With filters
-Invoke-RestMethod -Uri "http://localhost:3000/api/topics?locale=en&tag=security&page=1&limit=10" -Method Get
-```
-
-**GET /api/topics/[slug]**:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:3000/api/topics/how-to-reset-password" -Method Get
-```
-
-#### Generating x-signature Header
-
-The `x-signature` header is critical for authentication. Here's how to generate it:
-
-**Algorithm**:
-1. Get current timestamp in milliseconds: `timestamp = Date.now()`
-2. Stringify your request body: `body = JSON.stringify(payload)`
-3. Create message: `message = timestamp + "." + body`
-4. Compute HMAC-SHA256: `signature = HMAC-SHA256(INGEST_WEBHOOK_SECRET, message)`
-5. Convert to hexadecimal string
-
-**Bash/Linux**:
-```bash
-TIMESTAMP=$(date +%s000)
-BODY='{"tag":"topics"}'
-PAYLOAD="${TIMESTAMP}.${BODY}"
-SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
-```
-
-**Node.js**:
-```javascript
-const crypto = require('crypto');
-const timestamp = Date.now().toString();
-const body = JSON.stringify(payload);
-const message = `${timestamp}.${body}`;
-const signature = crypto.createHmac('sha256', WEBHOOK_SECRET).update(message).digest('hex');
-```
-
-**Python**:
-```python
-import hmac
-import hashlib
-import time
-import json
-
-timestamp = str(int(time.time() * 1000))
-body = json.dumps(payload)
-message = f"{timestamp}.{body}"
-signature = hmac.new(WEBHOOK_SECRET.encode(), message.encode(), hashlib.sha256).hexdigest()
-```
-
-**Important Notes**:
-- The signature must be computed on the **exact** body string that will be sent
-- Whitespace and formatting matter - use the same JSON serialization
-- The timestamp must be within ±5 minutes of server time
-- Use the raw body string, not a parsed object
+For detailed testing documentation, see:
+- [Testing Guide](docs/testing/README.md) - Complete testing documentation
+- [API Testing Examples](test-requests/README.md) - curl and script examples
 
 ## Project Structure
 
+The project follows a clean, organized structure with clear separation of concerns:
+
 ```
 /
-├── prisma/
-│   ├── schema.prisma              # Database schema
-│   └── migrations/                # Migration files
-├── src/
+├── docs/                          # 📚 All project documentation
+│   ├── setup/                     # Setup and installation guides
+│   ├── architecture/              # System design and architecture docs
+│   ├── testing/                   # Testing guides and procedures
+│   └── reports/                   # Test reports and audit results
+│
+├── scripts/                       # 🔧 Utility scripts
+│   ├── test/                      # Test execution scripts
+│   ├── verify/                    # Verification scripts
+│   └── performance/               # Performance testing scripts
+│
+├── tests/                         # 🧪 Test code
+│   ├── unit/                      # Unit tests
+│   │   ├── api/                   # API logic unit tests
+│   │   └── lib/                   # Library unit tests
+│   ├── integration/               # Integration tests
+│   ├── e2e/                       # End-to-end tests
+│   └── utils/                     # Test utilities
+│
+├── src/                           # 💻 Application source code
 │   ├── app/
 │   │   └── api/
 │   │       ├── ingest/
@@ -785,15 +503,26 @@ signature = hmac.new(WEBHOOK_SECRET.encode(), message.encode(), hashlib.sha256).
 │   │   └── db.ts                  # Prisma client singleton
 │   └── types/
 │       └── api.ts                 # TypeScript types
-├── tests/
-│   ├── api/                       # API endpoint tests
-│   ├── utils/                     # Test utilities
-│   └── setup.ts                   # Test configuration
+│
+├── prisma/
+│   ├── schema.prisma              # Database schema
+│   └── migrations/                # Migration files
+│
+├── test-requests/                 # API testing examples
 ├── .env.example                   # Environment template
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
 ```
+
+### Folder Organization Conventions
+
+- **docs/**: All documentation is organized by purpose (setup, architecture, testing, reports)
+- **scripts/**: Utility scripts are categorized by function (test, verify, performance)
+- **tests/**: Test code is separated by type (unit, integration, e2e)
+- **src/**: Application code follows Next.js App Router conventions
+
+For detailed information about the folder structure and where to place new files, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Data Models
 

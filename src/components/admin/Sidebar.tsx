@@ -74,27 +74,29 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
           lg:translate-x-0 lg:static lg:z-auto
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
+        aria-label="Admin sidebar navigation"
+        role="complementary"
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <Link href="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Link href="/admin" className="flex items-center space-x-2" aria-label="CMS Dashboard Home">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center" aria-hidden="true">
                 <span className="text-white font-bold text-lg">C</span>
               </div>
               <span className="text-xl font-bold text-gray-900">CMS</span>
             </Link>
             <button
               onClick={onMobileToggle}
-              className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               aria-label="Close sidebar"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-5 h-5 text-gray-600" aria-hidden="true" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Admin navigation menu">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -110,17 +112,18 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
                     }
                   }}
                   className={`
-                    flex items-center space-x-3 px-3 py-2 rounded-lg
-                    transition-colors duration-150
+                    flex items-center space-x-3 px-3 py-3 rounded-lg
+                    transition-all duration-200 min-h-[44px]
+                    focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
                     ${
                       active
                         ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-700 hover:bg-gray-100 hover:translate-x-1'
                     }
                   `}
                   aria-current={active ? 'page' : undefined}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-5 h-5" aria-hidden="true" />
                   <span>{item.name}</span>
                 </Link>
               );
@@ -128,9 +131,9 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
           </nav>
 
           {/* User profile section */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 p-4" role="region" aria-label="User profile">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center" aria-hidden="true">
                 <User className="w-5 h-5 text-gray-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -148,8 +151,9 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
               variant="outline"
               className="w-full justify-start"
               size="sm"
+              aria-label={isLoggingOut ? 'Logging out' : 'Logout from admin dashboard'}
             >
-              <LogOut className="w-4 h-4 mr-2" />
+              <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
               {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Button>
           </div>

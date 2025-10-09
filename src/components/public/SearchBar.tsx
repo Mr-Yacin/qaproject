@@ -121,7 +121,7 @@ export default function SearchBar({
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={placeholder}
-          className="block w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-20 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm"
+          className="block w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-20 text-base text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm min-h-[44px]"
           aria-label="Search topics"
           aria-describedby="search-shortcut"
         />
@@ -151,7 +151,7 @@ export default function SearchBar({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-700 transition-colors"
+            className="absolute inset-y-0 right-0 flex items-center justify-center pr-3 text-gray-400 hover:text-gray-700 transition-colors min-w-[44px] min-h-[44px]"
             aria-label="Clear search"
           >
             <X className="h-5 w-5" aria-hidden="true" />

@@ -8,6 +8,7 @@ import { UnifiedTopic } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +51,8 @@ export default function TopicsManagementPage() {
   const fetchTopics = async () => {
     try {
       setLoading(true);
-      const response = await getTopics({ limit: 1000 });
+      // Note: API limit is max 100, so we fetch the maximum allowed
+      const response = await getTopics({ limit: 100 });
       setTopics(response.items);
     } catch (error) {
       toast({
@@ -121,12 +123,18 @@ export default function TopicsManagementPage() {
         faqItems: [],
       });
 
-      // Revalidate cache
+      // Show loading toast for revalidation
+      toast({
+        title: 'Revalidating cache...',
+        description: 'Updating cached content',
+      });
+
+      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
       await revalidateTopicCache(topicToDelete.topic.slug);
 
       toast({
         title: 'Success',
-        description: 'Topic deleted successfully.',
+        description: 'Topic deleted and cache revalidated successfully.',
       });
 
       // Refresh topics list
@@ -160,9 +168,10 @@ export default function TopicsManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <ClientAuthCheck>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Topics Management</h1>
           <p className="text-muted-foreground mt-1">
@@ -246,7 +255,7 @@ export default function TopicsManagementPage() {
                 {filteredTopics.map((item) => (
                   <tr
                     key={item.topic.id}
-                    className="border-t hover:bg-muted/30 transition-colors"
+                    className="border-t hover:bg-muted/50 transition-all duration-200"
                   >
                     <td className="p-4 font-medium">{item.topic.title}</td>
                     <td className="p-4 text-sm text-muted-foreground">
@@ -291,7 +300,7 @@ export default function TopicsManagementPage() {
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <Link href={`/admin/topics/${item.topic.slug}/edit`}>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" className="transition-all duration-200 hover:scale-110">
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </Link>
@@ -299,6 +308,7 @@ export default function TopicsManagementPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(item)}
+                          className="transition-all duration-200 hover:scale-110"
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -355,5 +365,6 @@ export default function TopicsManagementPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </ClientAuthCheck>
   );
 }

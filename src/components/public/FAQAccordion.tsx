@@ -37,7 +37,7 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
         <AccordionItem
           key={item.id}
           value={`item-${index}`}
-          className="border border-gray-200 rounded-lg px-6 bg-white shadow-sm hover:shadow-md transition-shadow"
+          className="border border-gray-200 rounded-lg px-6 bg-white shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300"
         >
           <AccordionTrigger 
             className="text-left text-base md:text-lg font-semibold text-gray-900 hover:text-primary-600 py-4"

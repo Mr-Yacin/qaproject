@@ -9,10 +9,12 @@ import { TopicsQuerySchema } from '@/lib/validation/schemas';
  * List topics with filtering and pagination
  * Requirements: 4.5, 4.6, 4.7, 4.8, 4.9, 6.2
  */
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Extract query parameters from URL
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
 
     // Build query object, only including non-null values
     const query: any = {};

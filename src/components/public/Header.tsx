@@ -29,11 +29,15 @@ export default function Header() {
       className={`sticky top-0 z-50 w-full transition-shadow duration-200 ${
         isScrolled ? 'bg-white shadow-md' : 'bg-white'
       }`}
+      role="banner"
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:py-4 lg:px-8">
+      <nav 
+        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:py-4 lg:px-8"
+        aria-label="Main navigation"
+      >
         {/* Logo */}
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5">
+          <Link href="/" className="-m-1.5 p-1.5" aria-label="Q&A CMS Home">
             <span className="text-xl font-bold text-primary-600 md:text-2xl">
               Q&A CMS
             </span>
@@ -46,8 +50,9 @@ export default function Header() {
             variant="ghost"
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            className="touch-target"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? (
               <X className="h-6 w-6" aria-hidden="true" />
@@ -58,35 +63,41 @@ export default function Header() {
         </div>
 
         {/* Desktop navigation */}
-        <div className="hidden md:flex md:gap-x-8">
+        <ul className="hidden md:flex md:gap-x-8" role="list">
           {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-sm font-semibold leading-6 text-gray-900 transition-colors hover:text-primary-600"
-            >
-              {item.name}
-            </Link>
+            <li key={item.name}>
+              <Link
+                href={item.href}
+                className="text-sm font-semibold leading-6 text-gray-900 transition-all duration-200 hover:text-primary-600 hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary-600 after:transition-all after:duration-200 hover:after:w-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-1"
+              >
+                {item.name}
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </nav>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="space-y-1 border-t border-gray-200 px-4 pb-3 pt-2">
+        <nav 
+          id="mobile-menu"
+          className="md:hidden"
+          aria-label="Mobile navigation"
+        >
+          <ul className="space-y-1 border-t border-gray-200 px-4 pb-3 pt-2" role="list">
             {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-primary-600 touch-target"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
+              <li key={item.name}>
+                <Link
+                  href={item.href}
+                  className="block rounded-md px-4 py-3 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-primary-600 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </nav>
       )}
     </header>
   );

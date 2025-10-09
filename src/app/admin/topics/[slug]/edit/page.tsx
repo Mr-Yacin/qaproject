@@ -67,13 +67,13 @@ export default function EditTopicPage() {
           tags: data.tags,
         },
         mainQuestion: {
-          text: topic.primaryQuestion?.text || data.title,
+          text: data.mainQuestion,
         },
         article: {
-          content: topic.article?.content || '',
-          status: topic.article?.status || 'DRAFT',
+          content: data.articleContent,
+          status: data.articleStatus,
         },
-        faqItems: topic.faqItems.map((item) => ({
+        faqItems: data.faqItems.map((item) => ({
           question: item.question,
           answer: item.answer,
           order: item.order,
@@ -83,13 +83,19 @@ export default function EditTopicPage() {
       // Update the topic
       await createOrUpdateTopic(payload);
 
-      // Revalidate cache
+      // Show loading toast for revalidation
+      toast({
+        title: 'Revalidating cache...',
+        description: 'Updating cached content',
+      });
+
+      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
       await revalidateTopicCache(data.slug);
 
       // Show success message
       toast({
         title: 'Success',
-        description: 'Topic updated successfully',
+        description: 'Topic updated and cache revalidated successfully',
       });
 
       // Redirect to topics list
@@ -149,6 +155,14 @@ export default function EditTopicPage() {
     title: topic.topic.title,
     locale: topic.topic.locale,
     tags: topic.topic.tags,
+    mainQuestion: topic.primaryQuestion?.text || topic.topic.title,
+    articleContent: topic.article?.content || '',
+    articleStatus: (topic.article?.status as 'DRAFT' | 'PUBLISHED') || 'DRAFT',
+    faqItems: topic.faqItems.map((item) => ({
+      question: item.question,
+      answer: item.answer,
+      order: item.order,
+    })),
   };
 
   return (

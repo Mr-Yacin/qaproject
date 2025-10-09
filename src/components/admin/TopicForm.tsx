@@ -7,7 +7,9 @@ import { X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { topicFormSchema, type TopicFormSchema } from '@/lib/utils/validation';
-import { RichTextEditor } from './RichTextEditor';
+import { RichTextEditorLazy as RichTextEditor } from './RichTextEditorLazy';
+import { FAQManagerLazy as FAQManager } from './FAQManagerLazy';
+import { type FAQItem } from './FAQManager';
 import {
   Dialog,
   DialogContent,
@@ -341,6 +343,28 @@ export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
         )}
       </div>
 
+      {/* FAQ Items Section */}
+      <div>
+        <Controller
+          name="faqItems"
+          control={control}
+          render={({ field }) => (
+            <FAQManager
+              items={field.value}
+              onChange={(items: FAQItem[]) => {
+                field.onChange(items);
+                trigger('faqItems');
+              }}
+            />
+          )}
+        />
+        {errors.faqItems && (
+          <p role="alert" className="text-sm text-red-600 mt-1">
+            {errors.faqItems.message}
+          </p>
+        )}
+      </div>
+
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -377,13 +401,26 @@ export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
               className="prose prose-sm sm:prose lg:prose-lg max-w-none"
               dangerouslySetInnerHTML={{ __html: articleContent }}
             />
+            {watch('faqItems').length > 0 && (
+              <div className="mt-8 pt-8 border-t">
+                <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
+                <div className="space-y-4">
+                  {watch('faqItems').map((item, index) => (
+                    <div key={index} className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="font-semibold text-lg mb-2">{item.question}</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap">{item.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Submit Button */}
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
           {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Topic' : 'Update Topic'}
         </Button>
         <Button
@@ -391,6 +428,7 @@ export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
           variant="outline"
           onClick={() => window.history.back()}
           disabled={isSubmitting}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>

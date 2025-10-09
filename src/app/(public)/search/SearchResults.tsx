@@ -6,7 +6,7 @@ import { UnifiedTopic } from '@/types/api';
 import { getTopics } from '@/lib/api/topics';
 import SearchBar from '@/components/public/SearchBar';
 import TopicCard from '@/components/public/TopicCard';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 /**
  * SearchResults component that filters topics by search query
@@ -14,8 +14,9 @@ import { AlertCircle } from 'lucide-react';
  * - Real-time search filtering
  * - Keyword highlighting in results
  * - Empty state handling
- * - Error handling
- * Requirements: 9.1, 9.2, 9.3
+ * - Comprehensive error handling with retry mechanism
+ * - Loading states
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
 export default function SearchResults() {
   const searchParams = useSearchParams();
@@ -26,31 +27,7 @@ export default function SearchResults() {
   const [filteredTopics, setFilteredTopics] = useState<UnifiedTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch all topics on mount
-  useEffect(() => {
-    async function fetchTopics() {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getTopics({ limit: 1000 }); // Fetch all topics
-        setAllTopics(data.items);
-        
-        // Apply initial filter if query exists
-        if (initialQuery) {
-          filterTopics(data.items, initialQuery);
-        } else {
-          setFilteredTopics(data.items);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch topics');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTopics();
-  }, [initialQuery]);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Filter topics based on search query
   const filterTopics = useCallback((topics: UnifiedTopic[], searchQuery: string) => {
@@ -73,6 +50,68 @@ export default function SearchResults() {
 
     setFilteredTopics(filtered);
   }, []);
+
+  // Fetch all topics on mount
+  useEffect(() => {
+    async function fetchTopics() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('[SearchResults] Fetching topics...', { 
+          initialQuery, 
+          retryCount,
+          timestamp: new Date().toISOString() 
+        });
+        
+        // Note: API limit is max 100, so we fetch the maximum allowed
+        const data = await getTopics({ limit: 100 });
+        
+        console.log('[SearchResults] Topics fetched successfully', { 
+          count: data.items.length,
+          total: data.total,
+          timestamp: new Date().toISOString()
+        });
+        
+        setAllTopics(data.items);
+        
+        // Apply initial filter if query exists
+        if (initialQuery) {
+          filterTopics(data.items, initialQuery);
+        } else {
+          setFilteredTopics(data.items);
+        }
+        
+        // Reset retry count on success
+        setRetryCount(0);
+      } catch (err) {
+        // Comprehensive error logging
+        console.error('[SearchResults] Failed to fetch topics:', {
+          error: err instanceof Error ? err.message : 'Unknown error',
+          errorType: err?.constructor?.name,
+          stack: err instanceof Error ? err.stack : undefined,
+          initialQuery,
+          retryCount,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Set user-friendly error message
+        const errorMessage = err instanceof Error 
+          ? err.message 
+          : 'Failed to fetch topics. Please try again later.';
+        
+        setError(errorMessage);
+        
+        // Graceful degradation: Set empty arrays to keep UI functional
+        setAllTopics([]);
+        setFilteredTopics([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTopics();
+  }, [initialQuery, retryCount, filterTopics]);
 
   // Handle search input changes
   const handleSearch = useCallback((searchQuery: string) => {
@@ -102,6 +141,15 @@ export default function SearchResults() {
     );
   };
 
+  // Retry handler
+  const handleRetry = useCallback(() => {
+    console.log('[SearchResults] Retry button clicked', { 
+      currentRetryCount: retryCount,
+      timestamp: new Date().toISOString()
+    });
+    setRetryCount(prev => prev + 1);
+  }, [retryCount]);
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -117,6 +165,14 @@ export default function SearchResults() {
             Error Loading Topics
           </h3>
           <p className="mt-2 text-red-700">{error}</p>
+          <button
+            onClick={handleRetry}
+            disabled={loading}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Retrying...' : 'Try Again'}
+          </button>
         </div>
       </div>
     );

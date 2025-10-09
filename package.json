@@ -8,12 +8,30 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
+    "test:cms": "node scripts/test/test-cms-api-docker.js",
+    "test:docker": "test-docker.cmd",
+    "test:homepage": "node scripts/test/test-homepage.js",
+    "test:admin-auth": "node scripts/test/test-admin-auth.js",
+    "test:cache": "node scripts/test/test-cache-revalidation.js",
+    "verify:auth": "node scripts/verify/verify-admin-auth.js",
+    "verify:caching": "node scripts/verify/verify-caching-strategy.js",
+    "verify:code-splitting": "node scripts/verify/verify-code-splitting.js",
+    "verify:seed": "node scripts/verify/verify-seed-data.js",
+    "perf:lighthouse": "node scripts/performance/lighthouse-performance-test.js",
+    "perf:simple": "node scripts/performance/simple-performance-test.js",
+    "seed": "tsx prisma/seed.ts",
+    "seed:append": "tsx prisma/seed.ts --no-clear",
+    "seed:large": "tsx prisma/seed.ts --count 50",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:migrate": "docker-compose exec app npx prisma migrate deploy"
+    "docker:migrate": "docker-compose exec app npx prisma migrate deploy",
+    "docker:test": "docker-compose up -d && timeout /t 10 && node scripts/test/test-cms-api-docker.js"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.20.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -42,12 +60,14 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "eslint": "8.57.1",
     "eslint-config-next": "15.5.4",
     "prisma": "^5.20.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.0.0",
     "vitest": "^2.0.0"
   }
