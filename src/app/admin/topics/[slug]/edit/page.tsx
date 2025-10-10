@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { TopicForm } from '@/components/admin/TopicForm';
-import { getTopicBySlug } from '@/lib/api/topics';
-import { createOrUpdateTopic, revalidateTopicCache } from '@/lib/api/ingest';
+import { getAdminTopicBySlug } from '@/lib/api/topics';
+import { updateTopicAdmin } from '@/lib/api/ingest';
 import { useToast } from '@/hooks/use-toast';
 import type { TopicFormSchema } from '@/lib/utils/validation';
 import type { IngestPayload, UnifiedTopic } from '@/types/api';
@@ -31,7 +31,7 @@ export default function EditTopicPage() {
     const fetchTopic = async () => {
       try {
         setIsLoading(true);
-        const data = await getTopicBySlug(slug);
+        const data = await getAdminTopicBySlug(slug);
         setTopic(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch topic');
@@ -80,22 +80,13 @@ export default function EditTopicPage() {
         })),
       };
 
-      // Update the topic
-      await createOrUpdateTopic(payload);
-
-      // Show loading toast for revalidation
-      toast({
-        title: 'Revalidating cache...',
-        description: 'Updating cached content',
-      });
-
-      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
-      await revalidateTopicCache(data.slug);
+      // Update the topic via admin API (no HMAC required)
+      const result = await updateTopicAdmin(slug, payload);
 
       // Show success message
       toast({
         title: 'Success',
-        description: 'Topic updated and cache revalidated successfully',
+        description: result.message || 'Topic updated successfully',
       });
 
       // Redirect to topics list

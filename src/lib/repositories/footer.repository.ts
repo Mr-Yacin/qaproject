@@ -76,7 +76,10 @@ export class FooterRepository {
     if (existing) {
       return prisma.footerSettings.update({
         where: { id: existing.id },
-        data,
+        data: {
+          copyrightText: data.copyrightText,
+          socialLinks: data.socialLinks ?? undefined,
+        },
       });
     }
 
@@ -84,7 +87,7 @@ export class FooterRepository {
     return prisma.footerSettings.create({
       data: {
         copyrightText: data.copyrightText || '',
-        socialLinks: data.socialLinks,
+        socialLinks: data.socialLinks ?? undefined,
       },
     });
   }

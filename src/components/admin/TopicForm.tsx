@@ -64,6 +64,7 @@ export function TopicForm({ initialData, onSubmit, mode, enableAutoSave = true }
     watch,
     trigger,
     control,
+    getValues,
   } = form;
 
   const title = watch('title');
@@ -95,8 +96,8 @@ export function TopicForm({ initialData, onSubmit, mode, enableAutoSave = true }
   useEffect(() => {
     if (!enableAutoSave) return;
 
-    const autoSaveInterval = setInterval(async () => {
-      const formData = watch();
+    const autoSaveInterval = setInterval(() => {
+      const formData = getValues();
       
       // Only auto-save if there's meaningful content
       if (formData.title && formData.articleContent && formData.articleContent.length > 50) {
@@ -110,21 +111,28 @@ export function TopicForm({ initialData, onSubmit, mode, enableAutoSave = true }
             savedAt: new Date().toISOString(),
           }));
           
+          console.log('[Auto-save] Draft saved successfully:', draftKey);
+          
           setAutoSaveStatus('saved');
           setLastSaved(new Date());
           
           // Reset status after 2 seconds
           setTimeout(() => setAutoSaveStatus('idle'), 2000);
         } catch (error) {
-          console.error('Auto-save failed:', error);
+          console.error('[Auto-save] Failed:', error);
           setAutoSaveStatus('error');
           setTimeout(() => setAutoSaveStatus('idle'), 2000);
         }
+      } else {
+        console.log('[Auto-save] Skipped - insufficient content', {
+          hasTitle: !!formData.title,
+          contentLength: formData.articleContent?.length || 0,
+        });
       }
     }, 30000); // Auto-save every 30 seconds
 
     return () => clearInterval(autoSaveInterval);
-  }, [enableAutoSave, mode, slug, watch]);
+  }, [enableAutoSave, mode, slug, getValues]);
 
   /**
    * Load draft from localStorage on mount

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getTopics } from '@/lib/api/topics';
+import { getAdminTopics } from '@/lib/api/topics';
 import { UnifiedTopic } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,8 +70,8 @@ export default function TopicsManagementPage() {
   const fetchTopics = async () => {
     try {
       setLoading(true);
-      // Note: API limit is max 100, so we fetch the maximum allowed
-      const response = await getTopics({ limit: 100 });
+      // Use admin API to fetch all topics including drafts
+      const response = await getAdminTopics({ limit: 100 });
       setTopics(response.items);
     } catch (error) {
       toast({

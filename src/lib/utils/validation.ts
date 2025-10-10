@@ -33,11 +33,7 @@ export const topicFormSchema = z.object({
   mainQuestion: z
     .string()
     .min(10, 'Main question must be at least 10 characters to be clear and specific')
-    .max(500, 'Main question must be 500 characters or less for better readability')
-    .refine(
-      (val) => val.trim().endsWith('?'),
-      'Main question should end with a question mark (?)'
-    ),
+    .max(500, 'Main question must be 500 characters or less for better readability'),
   articleContent: z
     .string()
     .min(50, 'Article content must be at least 50 characters to provide meaningful information')

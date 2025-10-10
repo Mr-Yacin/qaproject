@@ -28,7 +28,10 @@ async function getFooterConfig() {
   ]);
 
   return {
-    settings,
+    settings: settings ? {
+      ...settings,
+      socialLinks: settings.socialLinks as Record<string, string> | null,
+    } : null,
     columns,
   };
 }

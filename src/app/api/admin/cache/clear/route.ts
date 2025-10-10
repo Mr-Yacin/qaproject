@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       userId: authenticatedUser.id,
       action: 'UPDATE',
       entityType: 'Cache',
-      entityId: null,
+      entityId: undefined,
       details: {
         clearedTags: tagsToClear,
         clearAll: !validatedData.tags || validatedData.tags.length === 0,

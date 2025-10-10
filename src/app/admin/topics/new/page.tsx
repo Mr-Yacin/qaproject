@@ -2,8 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { TopicForm } from '@/components/admin/TopicForm';
-import { createOrUpdateTopic } from '@/lib/api/ingest';
-import { revalidateTopicCache } from '@/lib/api/ingest';
+import { createTopicAdmin } from '@/lib/api/ingest';
 import { useToast } from '@/hooks/use-toast';
 import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 import type { TopicFormSchema } from '@/lib/utils/validation';
@@ -46,22 +45,13 @@ export default function NewTopicPage() {
         })),
       };
 
-      // Create the topic
-      await createOrUpdateTopic(payload);
-
-      // Show loading toast for revalidation
-      toast({
-        title: 'Revalidating cache...',
-        description: 'Updating cached content',
-      });
-
-      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
-      await revalidateTopicCache(data.slug);
+      // Create the topic via admin API (no HMAC required)
+      const result = await createTopicAdmin(payload);
 
       // Show success message
       toast({
         title: 'Success',
-        description: 'Topic created and cache revalidated successfully',
+        description: result.message || 'Topic created successfully',
       });
 
       // Redirect to topics list

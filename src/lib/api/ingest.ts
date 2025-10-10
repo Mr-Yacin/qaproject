@@ -168,6 +168,75 @@ export async function revalidateTopicCache(slug: string): Promise<void> {
 }
 
 /**
+ * Creates a topic via admin API (no HMAC required)
+ * @param payload - The topic data to create
+ * @returns Promise with creation result
+ * @throws APIError if the request fails
+ * Requirements: 4.3, 1.1, 1.2, 1.3, 1.4
+ */
+export async function createTopicAdmin(payload: IngestPayload): Promise<{
+  success: boolean;
+  topicId: string;
+  message: string;
+}> {
+  try {
+    const response = await fetch('/api/admin/topics/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    
+    return handleAPIResponse(response);
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    throw new APIError(
+      error instanceof Error ? error.message : 'Failed to create topic',
+      500
+    );
+  }
+}
+
+/**
+ * Updates a topic via admin API (no HMAC required)
+ * @param slug - The topic slug to update
+ * @param payload - The topic data to update
+ * @returns Promise with update result
+ * @throws APIError if the request fails
+ * Requirements: 4.4, 4.5, 1.1, 1.2, 1.3, 1.4
+ */
+export async function updateTopicAdmin(slug: string, payload: IngestPayload): Promise<{
+  success: boolean;
+  topicId: string;
+  message: string;
+}> {
+  try {
+    const response = await fetch(`/api/admin/topics/${slug}/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    
+    return handleAPIResponse(response);
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    throw new APIError(
+      error instanceof Error ? error.message : 'Failed to update topic',
+      500
+    );
+  }
+}
+
+/**
  * Deletes a topic by slug
  * @param slug - The topic slug to delete
  * @returns Promise with deletion result and impact summary

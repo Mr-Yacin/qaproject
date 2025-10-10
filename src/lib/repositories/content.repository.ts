@@ -460,4 +460,106 @@ export class ContentRepository {
             faqItems: topic._count.faqItems,
         };
     }
+
+    /**
+     * Find a topic by slug including drafts (for admin use)
+     * Requirements: 4.4, 4.5
+     */
+    async findTopicBySlugIncludingDrafts(slug: string): Promise<UnifiedTopic | null> {
+        const topic = await prisma.topic.findUnique({
+            where: { slug },
+            include: {
+                questions: {
+                    where: { isPrimary: true },
+                },
+                articles: true, // Include all articles regardless of status
+                faqItems: {
+                    orderBy: { order: 'asc' },
+                },
+            },
+        });
+
+        if (!topic) {
+            return null;
+        }
+
+        return {
+            topic: {
+                id: topic.id,
+                slug: topic.slug,
+                title: topic.title,
+                locale: topic.locale,
+                tags: topic.tags,
+                createdAt: topic.createdAt,
+                updatedAt: topic.updatedAt,
+            },
+            primaryQuestion: topic.questions[0] || null,
+            article: topic.articles[0] || null, // Return first article (draft or published)
+            faqItems: topic.faqItems,
+        };
+    }
+
+    /**
+     * Find all topics including drafts (for admin use)
+     * Requirements: 4.1, 4.2
+     */
+    async findAllTopics(filters: TopicFilters): Promise<PaginatedTopics> {
+        const { locale, tag, page, limit } = filters;
+
+        // Build where clause (no status filter)
+        const where: any = {};
+
+        if (locale) {
+            where.locale = locale;
+        }
+
+        if (tag) {
+            where.tags = {
+                has: tag,
+            };
+        }
+
+        // Get total count
+        const total = await prisma.topic.count({ where });
+
+        // Get paginated topics (including all statuses)
+        const topics = await prisma.topic.findMany({
+            where,
+            include: {
+                questions: {
+                    where: { isPrimary: true },
+                },
+                articles: true, // Include all articles regardless of status
+                faqItems: {
+                    orderBy: { order: 'asc' },
+                },
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { updatedAt: 'desc' }, // Show most recently updated first
+        });
+
+        const items: UnifiedTopic[] = topics.map((topic) => ({
+            topic: {
+                id: topic.id,
+                slug: topic.slug,
+                title: topic.title,
+                locale: topic.locale,
+                tags: topic.tags,
+                createdAt: topic.createdAt,
+                updatedAt: topic.updatedAt,
+            },
+            primaryQuestion: topic.questions[0] || null,
+            article: topic.articles[0] || null, // Return first article (draft or published)
+            faqItems: topic.faqItems,
+        }));
+
+        return {
+            items,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
 }

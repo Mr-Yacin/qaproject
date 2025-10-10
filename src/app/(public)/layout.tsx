@@ -15,7 +15,7 @@ export default async function PublicLayout({
   children: React.ReactNode;
 }) {
   // Fetch menu items from database
-  let menuItems = [];
+  let menuItems: any[] = [];
   try {
     const menuService = new MenuService();
     menuItems = await menuService.getMenuStructure();

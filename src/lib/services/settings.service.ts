@@ -15,7 +15,15 @@ export class SettingsService {
 
   async updateSettings(data: SiteSettingsInput, updatedBy?: string): Promise<SiteSettings> {
     const updateData: UpdateSettingsInput = {
-      ...data,
+      siteName: data.siteName,
+      logoUrl: data.logoUrl ?? undefined,
+      faviconUrl: data.faviconUrl ?? undefined,
+      seoTitle: data.seoTitle ?? undefined,
+      seoDescription: data.seoDescription ?? undefined,
+      seoKeywords: data.seoKeywords,
+      socialLinks: data.socialLinks ?? undefined,
+      customCss: data.customCss ?? undefined,
+      customJs: data.customJs ?? undefined,
       updatedBy,
     };
 

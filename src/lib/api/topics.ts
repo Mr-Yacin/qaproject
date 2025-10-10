@@ -101,6 +101,87 @@ export async function getTopics(params?: Partial<TopicFilters>): Promise<Paginat
 }
 
 /**
+ * Fetches all topics including drafts (admin only)
+ * @param params - Optional filters for locale, tag, page, and limit
+ * @returns Paginated topics response including draft topics
+ * @throws APIError if the request fails
+ * Requirements: 4.1, 4.2
+ */
+export async function getAdminTopics(params?: Partial<TopicFilters>): Promise<PaginatedTopics> {
+  try {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.locale) {
+      searchParams.set('locale', params.locale);
+    }
+    if (params?.tag) {
+      searchParams.set('tag', params.tag);
+    }
+    if (params?.page !== undefined) {
+      searchParams.set('page', params.page.toString());
+    }
+    if (params?.limit !== undefined) {
+      searchParams.set('limit', params.limit.toString());
+    }
+    
+    const url = `/api/admin/topics${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return handleAPIResponse<PaginatedTopics>(response);
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    throw new APIError(
+      error instanceof Error ? error.message : 'Failed to fetch admin topics',
+      500
+    );
+  }
+}
+
+/**
+ * Fetches a single topic by its slug (admin version - includes drafts)
+ * @param slug - The unique slug identifier for the topic
+ * @returns Unified topic data including article and FAQ items (draft or published)
+ * @throws APIError if the request fails or topic is not found
+ * Requirements: 4.4, 4.5
+ */
+export async function getAdminTopicBySlug(slug: string): Promise<UnifiedTopic> {
+  try {
+    if (!slug || typeof slug !== 'string') {
+      throw new APIError('Invalid slug parameter', 400);
+    }
+    
+    const url = `/api/admin/topics/${encodeURIComponent(slug)}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return handleAPIResponse<UnifiedTopic>(response);
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    throw new APIError(
+      error instanceof Error ? error.message : 'Failed to fetch topic',
+      500
+    );
+  }
+}
+
+/**
  * Fetches a single topic by its slug
  * @param slug - The unique slug identifier for the topic
  * @returns Unified topic data including article and FAQ items
