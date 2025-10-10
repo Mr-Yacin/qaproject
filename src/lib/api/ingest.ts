@@ -166,3 +166,42 @@ export async function revalidateTopicCache(slug: string): Promise<void> {
     console.error('Cache revalidation failed:', error);
   }
 }
+
+/**
+ * Deletes a topic by slug
+ * @param slug - The topic slug to delete
+ * @returns Promise with deletion result and impact summary
+ * @throws APIError if the request fails
+ * Requirements: 1.5, 1.6, 1.7
+ */
+export async function deleteTopic(slug: string): Promise<{
+  success: boolean;
+  message: string;
+  impact: {
+    topicId: string;
+    slug: string;
+    title: string;
+    deletedRecords: {
+      questions: number;
+      article: number;
+      faqItems: number;
+    };
+  };
+}> {
+  try {
+    const response = await fetch(`/api/admin/topics/${slug}`, {
+      method: 'DELETE',
+    });
+    
+    return handleAPIResponse(response);
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    throw new APIError(
+      error instanceof Error ? error.message : 'Failed to delete topic',
+      500
+    );
+  }
+}

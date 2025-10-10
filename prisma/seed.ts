@@ -1,5 +1,6 @@
-import { PrismaClient, ContentStatus } from '@prisma/client';
+import { PrismaClient, ContentStatus, UserRole } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -91,6 +92,133 @@ async function createTopic(index: number) {
   return topic;
 }
 
+async function seedCMSDefaults() {
+  console.log('🎨 Seeding CMS default data...');
+
+  // Create default SiteSettings
+  const existingSettings = await prisma.siteSettings.findFirst();
+  if (!existingSettings) {
+    await prisma.siteSettings.create({
+      data: {
+        siteName: 'Q&A Article FAQ',
+        seoTitle: 'Q&A Article FAQ - Your Knowledge Base',
+        seoDescription: 'Comprehensive Q&A articles and FAQs for all your questions',
+        seoKeywords: ['qa', 'faq', 'knowledge base', 'articles'],
+        socialLinks: {
+          twitter: 'https://twitter.com/example',
+          facebook: 'https://facebook.com/example',
+          linkedin: 'https://linkedin.com/company/example',
+        },
+      },
+    });
+    console.log('   ✅ Created default site settings');
+  } else {
+    console.log('   ⏭️  Site settings already exist');
+  }
+
+  // Create default admin user
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: 'admin@example.com' },
+  });
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await prisma.user.create({
+      data: {
+        email: 'admin@example.com',
+        password: hashedPassword,
+        name: 'Admin User',
+        role: UserRole.ADMIN,
+        isActive: true,
+      },
+    });
+    console.log('   ✅ Created default admin user (email: admin@example.com, password: admin123)');
+  } else {
+    console.log('   ⏭️  Admin user already exists');
+  }
+
+  // Create default menu structure
+  const existingMenuItems = await prisma.menuItem.count();
+  if (existingMenuItems === 0) {
+    await prisma.menuItem.createMany({
+      data: [
+        { label: 'Home', url: '/', order: 1, isExternal: false, openNewTab: false },
+        { label: 'Topics', url: '/topics', order: 2, isExternal: false, openNewTab: false },
+        { label: 'About', url: '/pages/about', order: 3, isExternal: false, openNewTab: false },
+        { label: 'Contact', url: '/pages/contact', order: 4, isExternal: false, openNewTab: false },
+      ],
+    });
+    console.log('   ✅ Created default menu structure');
+  } else {
+    console.log('   ⏭️  Menu items already exist');
+  }
+
+  // Create default footer configuration
+  const existingFooterSettings = await prisma.footerSettings.findFirst();
+  if (!existingFooterSettings) {
+    await prisma.footerSettings.create({
+      data: {
+        copyrightText: `© ${new Date().getFullYear()} Q&A Article FAQ. All rights reserved.`,
+        socialLinks: {
+          twitter: 'https://twitter.com/example',
+          facebook: 'https://facebook.com/example',
+          linkedin: 'https://linkedin.com/company/example',
+        },
+      },
+    });
+    console.log('   ✅ Created default footer settings');
+  } else {
+    console.log('   ⏭️  Footer settings already exist');
+  }
+
+  // Create default footer columns
+  const existingFooterColumns = await prisma.footerColumn.count();
+  if (existingFooterColumns === 0) {
+    const aboutColumn = await prisma.footerColumn.create({
+      data: {
+        title: 'About',
+        order: 1,
+      },
+    });
+
+    const resourcesColumn = await prisma.footerColumn.create({
+      data: {
+        title: 'Resources',
+        order: 2,
+      },
+    });
+
+    const legalColumn = await prisma.footerColumn.create({
+      data: {
+        title: 'Legal',
+        order: 3,
+      },
+    });
+
+    // Create footer links
+    await prisma.footerLink.createMany({
+      data: [
+        // About column
+        { columnId: aboutColumn.id, label: 'About Us', url: '/pages/about', order: 1 },
+        { columnId: aboutColumn.id, label: 'Contact', url: '/pages/contact', order: 2 },
+        { columnId: aboutColumn.id, label: 'Team', url: '/pages/team', order: 3 },
+        // Resources column
+        { columnId: resourcesColumn.id, label: 'Topics', url: '/topics', order: 1 },
+        { columnId: resourcesColumn.id, label: 'FAQ', url: '/pages/faq', order: 2 },
+        { columnId: resourcesColumn.id, label: 'Blog', url: '/pages/blog', order: 3 },
+        // Legal column
+        { columnId: legalColumn.id, label: 'Privacy Policy', url: '/pages/privacy', order: 1 },
+        { columnId: legalColumn.id, label: 'Terms of Service', url: '/pages/terms', order: 2 },
+        { columnId: legalColumn.id, label: 'Cookie Policy', url: '/pages/cookies', order: 3 },
+      ],
+    });
+    console.log('   ✅ Created default footer columns and links');
+  } else {
+    console.log('   ⏭️  Footer columns already exist');
+  }
+
+  console.log('✅ CMS defaults seeded successfully!\n');
+}
+
 async function seed(options: SeedOptions = {}) {
   const { clear = false, count = 20 } = options;
 
@@ -98,14 +226,17 @@ async function seed(options: SeedOptions = {}) {
   console.log(`Options: clear=${clear}, count=${count}`);
 
   try {
+    // Seed CMS defaults first (always run, idempotent)
+    await seedCMSDefaults();
+
     // Clear existing data if requested
     if (clear) {
-      console.log('🗑️  Clearing existing data...');
+      console.log('🗑️  Clearing existing topic data...');
       await prisma.fAQItem.deleteMany();
       await prisma.article.deleteMany();
       await prisma.question.deleteMany();
       await prisma.topic.deleteMany();
-      console.log('✅ Data cleared');
+      console.log('✅ Topic data cleared');
     }
 
     // Create topics

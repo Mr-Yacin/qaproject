@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Eye } from 'lucide-react';
+import { X, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { topicFormSchema, type TopicFormSchema } from '@/lib/utils/validation';
@@ -19,23 +19,27 @@ import {
 
 /**
  * Props for TopicForm component
- * Requirements: 4.3, 4.4, 4.5, 4.8, 5.1, 5.4, 5.5, 5.6, 8.6
+ * Requirements: 4.3, 4.4, 4.5, 4.8, 5.1, 5.4, 5.5, 5.6, 8.6, 1.1, 1.2, 1.3, 1.4, 1.8
  */
 interface TopicFormProps {
   initialData?: Partial<TopicFormSchema>;
   onSubmit: (data: TopicFormSchema) => Promise<void>;
   mode: 'create' | 'edit';
+  enableAutoSave?: boolean;
 }
 
 /**
  * TopicForm component for creating and editing topics
  * Provides form fields for slug, title, locale, and tags with validation
  * Auto-generates slug from title in create mode
+ * Supports auto-save draft functionality
  */
-export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
+export function TopicForm({ initialData, onSubmit, mode, enableAutoSave = true }: TopicFormProps) {
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const form = useForm<TopicFormSchema>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,6 +89,78 @@ export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
   }, [title, slug, mode, setValue]);
 
   /**
+   * Auto-save draft functionality
+   * Saves form data to localStorage every 30 seconds
+   */
+  useEffect(() => {
+    if (!enableAutoSave) return;
+
+    const autoSaveInterval = setInterval(async () => {
+      const formData = watch();
+      
+      // Only auto-save if there's meaningful content
+      if (formData.title && formData.articleContent && formData.articleContent.length > 50) {
+        try {
+          setAutoSaveStatus('saving');
+          
+          // Save to localStorage
+          const draftKey = mode === 'edit' ? `topic-draft-${slug}` : 'topic-draft-new';
+          localStorage.setItem(draftKey, JSON.stringify({
+            ...formData,
+            savedAt: new Date().toISOString(),
+          }));
+          
+          setAutoSaveStatus('saved');
+          setLastSaved(new Date());
+          
+          // Reset status after 2 seconds
+          setTimeout(() => setAutoSaveStatus('idle'), 2000);
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+          setAutoSaveStatus('error');
+          setTimeout(() => setAutoSaveStatus('idle'), 2000);
+        }
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [enableAutoSave, mode, slug, watch]);
+
+  /**
+   * Load draft from localStorage on mount
+   */
+  useEffect(() => {
+    if (!enableAutoSave || mode !== 'create') return;
+
+    const draftKey = 'topic-draft-new';
+    const savedDraft = localStorage.getItem(draftKey);
+    
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        
+        // Ask user if they want to restore the draft
+        const shouldRestore = window.confirm(
+          `A draft was found from ${new Date(draft.savedAt).toLocaleString()}. Would you like to restore it?`
+        );
+        
+        if (shouldRestore) {
+          Object.keys(draft).forEach((key) => {
+            if (key !== 'savedAt') {
+              setValue(key as keyof TopicFormSchema, draft[key]);
+            }
+          });
+          setLastSaved(new Date(draft.savedAt));
+        } else {
+          localStorage.removeItem(draftKey);
+        }
+      } catch (error) {
+        console.error('Failed to restore draft:', error);
+      }
+    }
+  }, [enableAutoSave, mode, setValue]);
+
+  /**
    * Handle form submission
    */
   const handleFormSubmit = async (data: TopicFormSchema) => {
@@ -131,6 +207,43 @@ export function TopicForm({ initialData, onSubmit, mode }: TopicFormProps) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {/* Auto-save Status Indicator */}
+      {enableAutoSave && (
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
+          <div className="flex items-center gap-2">
+            {autoSaveStatus === 'saving' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <span className="text-muted-foreground">Saving draft...</span>
+              </>
+            )}
+            {autoSaveStatus === 'saved' && (
+              <>
+                <span className="h-2 w-2 rounded-full bg-green-600"></span>
+                <span className="text-muted-foreground">Draft saved</span>
+              </>
+            )}
+            {autoSaveStatus === 'error' && (
+              <>
+                <span className="h-2 w-2 rounded-full bg-red-600"></span>
+                <span className="text-destructive">Auto-save failed</span>
+              </>
+            )}
+            {autoSaveStatus === 'idle' && lastSaved && (
+              <>
+                <span className="h-2 w-2 rounded-full bg-gray-400"></span>
+                <span className="text-muted-foreground">
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </span>
+              </>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            Auto-saves every 30 seconds
+          </span>
+        </div>
+      )}
+
       {/* Title Field */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium mb-2">

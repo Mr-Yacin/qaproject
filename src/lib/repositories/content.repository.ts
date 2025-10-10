@@ -268,4 +268,196 @@ export class ContentRepository {
             },
         });
     }
+
+    /**
+     * Bulk delete topics by IDs
+     * Requirements: 10.2
+     */
+    async bulkDeleteTopics(topicIds: string[]): Promise<number> {
+        const result = await prisma.topic.deleteMany({
+            where: {
+                id: {
+                    in: topicIds,
+                },
+            },
+        });
+        return result.count;
+    }
+
+    /**
+     * Bulk update topic article status
+     * Requirements: 10.3
+     */
+    async bulkUpdateTopicStatus(topicIds: string[], status: ContentStatus): Promise<number> {
+        const result = await prisma.article.updateMany({
+            where: {
+                topicId: {
+                    in: topicIds,
+                },
+            },
+            data: {
+                status,
+            },
+        });
+        return result.count;
+    }
+
+    /**
+     * Bulk add tags to topics
+     * Requirements: 10.4
+     */
+    async bulkAddTags(topicIds: string[], tagsToAdd: string[]): Promise<void> {
+        await prisma.$transaction(
+            topicIds.map((topicId) =>
+                prisma.topic.update({
+                    where: { id: topicId },
+                    data: {
+                        tags: {
+                            push: tagsToAdd,
+                        },
+                    },
+                })
+            )
+        );
+    }
+
+    /**
+     * Bulk remove tags from topics
+     * Requirements: 10.4
+     */
+    async bulkRemoveTags(topicIds: string[], tagsToRemove: string[]): Promise<void> {
+        const topics = await prisma.topic.findMany({
+            where: {
+                id: {
+                    in: topicIds,
+                },
+            },
+            select: {
+                id: true,
+                tags: true,
+            },
+        });
+
+        await prisma.$transaction(
+            topics.map((topic) => {
+                const updatedTags = topic.tags.filter((tag) => !tagsToRemove.includes(tag));
+                return prisma.topic.update({
+                    where: { id: topic.id },
+                    data: {
+                        tags: updatedTags,
+                    },
+                });
+            })
+        );
+    }
+
+    /**
+     * Export topics by IDs or filters
+     * Requirements: 10.7
+     */
+    async exportTopics(filters: {
+        topicIds?: string[];
+        locale?: string;
+        tag?: string;
+        status?: ContentStatus;
+    }): Promise<UnifiedTopic[]> {
+        const where: any = {};
+
+        if (filters.topicIds && filters.topicIds.length > 0) {
+            where.id = {
+                in: filters.topicIds,
+            };
+        }
+
+        if (filters.locale) {
+            where.locale = filters.locale;
+        }
+
+        if (filters.tag) {
+            where.tags = {
+                has: filters.tag,
+            };
+        }
+
+        if (filters.status) {
+            where.articles = {
+                some: {
+                    status: filters.status,
+                },
+            };
+        }
+
+        const topics = await prisma.topic.findMany({
+            where,
+            include: {
+                questions: {
+                    where: { isPrimary: true },
+                },
+                articles: true,
+                faqItems: {
+                    orderBy: { order: 'asc' },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return topics.map((topic) => ({
+            topic: {
+                id: topic.id,
+                slug: topic.slug,
+                title: topic.title,
+                locale: topic.locale,
+                tags: topic.tags,
+                createdAt: topic.createdAt,
+                updatedAt: topic.updatedAt,
+            },
+            primaryQuestion: topic.questions[0] || null,
+            article: topic.articles[0] || null,
+            faqItems: topic.faqItems,
+        }));
+    }
+
+    /**
+     * Delete a topic by slug with cascade delete
+     * Requirements: 1.5, 1.6
+     */
+    async deleteTopicBySlug(slug: string): Promise<void> {
+        // Prisma will cascade delete related records based on schema
+        await prisma.topic.delete({
+            where: { slug },
+        });
+    }
+
+    /**
+     * Get topic impact summary before deletion
+     * Requirements: 1.5
+     */
+    async getTopicImpactSummary(slug: string): Promise<{
+        questions: number;
+        articles: number;
+        faqItems: number;
+    } | null> {
+        const topic = await prisma.topic.findUnique({
+            where: { slug },
+            include: {
+                _count: {
+                    select: {
+                        questions: true,
+                        articles: true,
+                        faqItems: true,
+                    },
+                },
+            },
+        });
+
+        if (!topic) {
+            return null;
+        }
+
+        return {
+            questions: topic._count.questions,
+            articles: topic._count.articles,
+            faqItems: topic._count.faqItems,
+        };
+    }
 }

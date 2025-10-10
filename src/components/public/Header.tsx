@@ -4,14 +4,27 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Navigation } from './Navigation';
 
-const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'Topics', href: '/topics' },
-  { name: 'Search', href: '/search' },
-];
+interface MenuItem {
+  id: string;
+  label: string;
+  url: string;
+  isExternal: boolean;
+  openNewTab: boolean;
+  children?: MenuItem[];
+}
 
-export default function Header() {
+interface HeaderProps {
+  menuItems?: MenuItem[];
+}
+
+/**
+ * Header Component
+ * Main site header with dynamic navigation from database
+ * Requirements: 4.1, 4.4, 4.7, 4.8
+ */
+export default function Header({ menuItems = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -63,18 +76,9 @@ export default function Header() {
         </div>
 
         {/* Desktop navigation */}
-        <ul className="hidden md:flex md:gap-x-8" role="list">
-          {navigation.map((item) => (
-            <li key={item.name}>
-              <Link
-                href={item.href}
-                className="text-sm font-semibold leading-6 text-gray-900 transition-all duration-200 hover:text-primary-600 hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary-600 after:transition-all after:duration-200 hover:after:w-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-1"
-              >
-                {item.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="hidden md:block">
+          <Navigation items={menuItems} />
+        </div>
       </nav>
 
       {/* Mobile menu */}
@@ -84,19 +88,13 @@ export default function Header() {
           className="md:hidden"
           aria-label="Mobile navigation"
         >
-          <ul className="space-y-1 border-t border-gray-200 px-4 pb-3 pt-2" role="list">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className="block rounded-md px-4 py-3 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-primary-600 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="border-t border-gray-200 px-4 pb-3 pt-2">
+            <Navigation
+              items={menuItems}
+              isMobile
+              onItemClick={() => setMobileMenuOpen(false)}
+            />
+          </div>
         </nav>
       )}
     </header>

@@ -5,6 +5,7 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 export { Dialog, DialogPortal, DialogOverlay, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "./dialog"
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./accordion"
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuRadioGroup } from "./dropdown-menu"
+export { Checkbox } from "./checkbox"
 
 // Typography components
 export { H1, H2, H3, H4, Body, Small, Lead, Muted } from "./typography"

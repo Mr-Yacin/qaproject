@@ -10,31 +10,90 @@ import {
   FileText,
   Settings,
   LogOut,
-  Menu,
   X,
   User,
+  FileEdit,
+  Image,
+  Navigation as NavigationIcon,
+  Users,
+  History,
+  Database,
+  Layers,
 } from 'lucide-react';
+import { UserRole } from '@prisma/client';
 
 interface SidebarProps {
   isMobileOpen: boolean;
   onMobileToggle: () => void;
 }
 
-const navigationItems = [
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: UserRole[]; // Roles that can see this menu item
+}
+
+const navigationItems: NavigationItem[] = [
   {
     name: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
+    roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
   },
   {
     name: 'Topics',
     href: '/admin/topics',
     icon: FileText,
+    roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
+  },
+  {
+    name: 'Pages',
+    href: '/admin/pages',
+    icon: FileEdit,
+    roles: [UserRole.ADMIN, UserRole.EDITOR],
+  },
+  {
+    name: 'Media',
+    href: '/admin/media',
+    icon: Image,
+    roles: [UserRole.ADMIN, UserRole.EDITOR],
+  },
+  {
+    name: 'Menus',
+    href: '/admin/menus',
+    icon: NavigationIcon,
+    roles: [UserRole.ADMIN, UserRole.EDITOR],
+  },
+  {
+    name: 'Footer',
+    href: '/admin/footer',
+    icon: Layers,
+    roles: [UserRole.ADMIN, UserRole.EDITOR],
+  },
+  {
+    name: 'Users',
+    href: '/admin/users',
+    icon: Users,
+    roles: [UserRole.ADMIN],
+  },
+  {
+    name: 'Audit Log',
+    href: '/admin/audit-log',
+    icon: History,
+    roles: [UserRole.ADMIN],
+  },
+  {
+    name: 'Cache',
+    href: '/admin/cache',
+    icon: Database,
+    roles: [UserRole.ADMIN],
   },
   {
     name: 'Settings',
     href: '/admin/settings',
     icon: Settings,
+    roles: [UserRole.ADMIN],
   },
 ];
 
@@ -54,6 +113,13 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
     }
     return pathname.startsWith(href);
   };
+
+  // Filter navigation items based on user role
+  const userRole = (session?.user as any)?.role as UserRole | undefined;
+  const visibleNavigationItems = navigationItems.filter((item) => {
+    if (!userRole) return false;
+    return item.roles.includes(userRole);
+  });
 
   return (
     <>
@@ -97,7 +163,7 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Admin navigation menu">
-            {navigationItems.map((item) => {
+            {visibleNavigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
@@ -143,6 +209,11 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
                 <p className="text-xs text-gray-500 truncate">
                   {session?.user?.email || ''}
                 </p>
+                {userRole && (
+                  <p className="text-xs text-blue-600 font-medium mt-0.5">
+                    {userRole}
+                  </p>
+                )}
               </div>
             </div>
             <Button

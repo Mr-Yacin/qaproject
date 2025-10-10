@@ -1,12 +1,13 @@
-'use client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import AdminLayoutClient from '@/components/admin/AdminLayoutClient';
 
-import { SessionProvider } from 'next-auth/react';
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Always wrap in SessionProvider so useSession works everywhere
-  return <SessionProvider>{children}</SessionProvider>;
+  const session = await getServerSession(authOptions);
+
+  return <AdminLayoutClient session={session}>{children}</AdminLayoutClient>;
 }

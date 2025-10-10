@@ -44,7 +44,24 @@ export const TopicsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20)
 });
 
+/**
+ * Site settings schema for PUT /api/admin/settings
+ * Validates site-wide settings updates
+ */
+export const SiteSettingsSchema = z.object({
+  siteName: z.string().min(1).max(100).optional(),
+  logoUrl: z.string().url().optional().nullable(),
+  faviconUrl: z.string().url().optional().nullable(),
+  seoTitle: z.string().max(60).optional().nullable(),
+  seoDescription: z.string().max(160).optional().nullable(),
+  seoKeywords: z.array(z.string()).optional(),
+  socialLinks: z.record(z.string().url()).optional().nullable(),
+  customCss: z.string().optional().nullable(),
+  customJs: z.string().optional().nullable(),
+});
+
 // Export TypeScript types inferred from schemas
 export type IngestPayload = z.infer<typeof IngestPayloadSchema>;
 export type RevalidatePayload = z.infer<typeof RevalidatePayloadSchema>;
 export type TopicsQuery = z.infer<typeof TopicsQuerySchema>;
+export type SiteSettingsInput = z.infer<typeof SiteSettingsSchema>;

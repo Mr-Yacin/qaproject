@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { Session } from 'next-auth';
 import Sidebar from '@/components/admin/Sidebar';
+import AdminHeader from '@/components/admin/AdminHeader';
+import AdminBreadcrumbs from '@/components/admin/AdminBreadcrumbs';
 import { Menu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { SkipLink } from '@/components/ui/skip-link';
@@ -36,8 +38,8 @@ export default function AdminLayoutClient({
 
           {/* Main content area */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Mobile header */}
-            <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+            {/* Mobile menu button - only visible on mobile */}
+            <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <button
                   onClick={toggleMobileSidebar}
@@ -53,11 +55,17 @@ export default function AdminLayoutClient({
                 </h1>
                 <div className="w-10" /> {/* Spacer for centering */}
               </div>
-            </header>
+            </div>
+
+            {/* Desktop header - only visible on desktop */}
+            <div className="hidden lg:block">
+              <AdminHeader />
+            </div>
 
             {/* Main content */}
             <main id="main-content" className="flex-1 overflow-y-auto" tabIndex={-1}>
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <AdminBreadcrumbs />
                 {children}
               </div>
             </main>

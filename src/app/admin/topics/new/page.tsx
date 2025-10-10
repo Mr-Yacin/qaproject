@@ -87,7 +87,7 @@ export default function NewTopicPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <TopicForm mode="create" onSubmit={handleSubmit} />
+          <TopicForm mode="create" onSubmit={handleSubmit} enableAutoSave={true} />
         </div>
       </div>
     </ClientAuthCheck>

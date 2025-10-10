@@ -7,6 +7,7 @@ import { getTopics } from '@/lib/api/topics';
 import { UnifiedTopic } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Plus, Search, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 import {
@@ -17,8 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { createOrUpdateTopic, revalidateTopicCache } from '@/lib/api/ingest';
+import { deleteTopic } from '@/lib/api/ingest';
 import { useToast } from '@/hooks/use-toast';
+import { BulkSelector } from '@/components/admin/bulk/BulkSelector';
+import { BulkActions, BulkAction } from '@/components/admin/bulk/BulkActions';
+import { BulkProgress } from '@/components/admin/bulk/BulkProgress';
 
 /**
  * Topics Management Page
@@ -37,6 +41,21 @@ export default function TopicsManagementPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [topicToDelete, setTopicToDelete] = useState<UnifiedTopic | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteImpact, setDeleteImpact] = useState<{
+    questions: number;
+    articles: number;
+    faqItems: number;
+  } | null>(null);
+
+  // Bulk operations state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<BulkAction | null>(null);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ success: 0, failed: 0, total: 0 });
+  const [bulkStatusValue, setBulkStatusValue] = useState<'DRAFT' | 'PUBLISHED'>('PUBLISHED');
+  const [bulkTagsValue, setBulkTagsValue] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   // Fetch topics on mount
   useEffect(() => {
@@ -95,6 +114,12 @@ export default function TopicsManagementPage() {
 
   const handleDeleteClick = (topic: UnifiedTopic) => {
     setTopicToDelete(topic);
+    // Calculate impact summary
+    setDeleteImpact({
+      questions: topic.primaryQuestion ? 1 : 0,
+      articles: topic.article ? 1 : 0,
+      faqItems: topic.faqItems.length,
+    });
     setDeleteDialogOpen(true);
   };
 
@@ -104,37 +129,12 @@ export default function TopicsManagementPage() {
     try {
       setDeleting(true);
 
-      // Delete by sending an ingest payload with empty/null values
-      // This is a workaround since there's no dedicated delete endpoint
-      await createOrUpdateTopic({
-        topic: {
-          slug: topicToDelete.topic.slug,
-          title: topicToDelete.topic.title,
-          locale: topicToDelete.topic.locale,
-          tags: [],
-        },
-        mainQuestion: {
-          text: '',
-        },
-        article: {
-          content: '',
-          status: 'DRAFT',
-        },
-        faqItems: [],
-      });
-
-      // Show loading toast for revalidation
-      toast({
-        title: 'Revalidating cache...',
-        description: 'Updating cached content',
-      });
-
-      // Revalidate cache for 'topics' tag and specific 'topic:[slug]' tag
-      await revalidateTopicCache(topicToDelete.topic.slug);
+      // Delete the topic using the new API
+      const result = await deleteTopic(topicToDelete.topic.slug);
 
       toast({
         title: 'Success',
-        description: 'Topic deleted and cache revalidated successfully.',
+        description: result.message || 'Topic deleted successfully',
       });
 
       // Refresh topics list
@@ -142,7 +142,7 @@ export default function TopicsManagementPage() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to delete topic. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to delete topic',
         variant: 'destructive',
       });
       console.error('Failed to delete topic:', error);
@@ -150,6 +150,7 @@ export default function TopicsManagementPage() {
       setDeleting(false);
       setDeleteDialogOpen(false);
       setTopicToDelete(null);
+      setDeleteImpact(null);
     }
   };
 
@@ -166,6 +167,168 @@ export default function TopicsManagementPage() {
       day: 'numeric',
     });
   };
+
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredTopics.map((item) => item.topic.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  // Bulk action handler
+  const handleBulkAction = (action: BulkAction) => {
+    setBulkAction(action);
+    setBulkDialogOpen(true);
+  };
+
+  // Execute bulk operation
+  const executeBulkOperation = async () => {
+    if (!bulkAction) return;
+
+    try {
+      setBulkProcessing(true);
+      setBulkProgress({ success: 0, failed: 0, total: selectedIds.length });
+
+      let response;
+
+      switch (bulkAction) {
+        case 'delete':
+          response = await fetch('/api/admin/topics/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topicIds: selectedIds }),
+          });
+          break;
+
+        case 'update-status':
+          response = await fetch('/api/admin/topics/bulk-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topicIds: selectedIds,
+              updates: { status: bulkStatusValue },
+            }),
+          });
+          break;
+
+        case 'add-tags':
+          const tagsToAdd = bulkTagsValue.split(',').map((t) => t.trim()).filter(Boolean);
+          response = await fetch('/api/admin/topics/bulk-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topicIds: selectedIds,
+              updates: { tags: { add: tagsToAdd } },
+            }),
+          });
+          break;
+
+        case 'remove-tags':
+          const tagsToRemove = bulkTagsValue.split(',').map((t) => t.trim()).filter(Boolean);
+          response = await fetch('/api/admin/topics/bulk-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topicIds: selectedIds,
+              updates: { tags: { remove: tagsToRemove } },
+            }),
+          });
+          break;
+
+        case 'export':
+          response = await fetch('/api/admin/topics/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topicIds: selectedIds }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const blob = new Blob([JSON.stringify(data.topics, null, 2)], {
+              type: 'application/json',
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `topics-export-${new Date().toISOString()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+          break;
+
+        case 'import':
+          if (!importFile) {
+            toast({
+              title: 'Error',
+              description: 'Please select a file to import',
+              variant: 'destructive',
+            });
+            return;
+          }
+          const fileContent = await importFile.text();
+          const importData = JSON.parse(fileContent);
+          response = await fetch('/api/admin/topics/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topics: importData,
+              mode: 'upsert',
+            }),
+          });
+          break;
+      }
+
+      if (response && response.ok) {
+        const result = await response.json();
+        setBulkProgress({
+          success: result.success || selectedIds.length,
+          failed: result.failed || 0,
+          total: selectedIds.length,
+        });
+
+        toast({
+          title: 'Success',
+          description: `Bulk ${bulkAction} completed successfully`,
+        });
+
+        // Refresh topics list
+        await fetchTopics();
+        setSelectedIds([]);
+      } else {
+        throw new Error('Bulk operation failed');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to execute bulk ${bulkAction}`,
+        variant: 'destructive',
+      });
+      console.error('Bulk operation error:', error);
+    } finally {
+      setBulkProcessing(false);
+      setTimeout(() => {
+        setBulkDialogOpen(false);
+        setBulkAction(null);
+        setBulkProgress({ success: 0, failed: 0, total: 0 });
+      }, 2000);
+    }
+  };
+
+  const bulkSelector = BulkSelector({
+    selectedIds,
+    allIds: filteredTopics.map((item) => item.topic.id),
+    onSelectAll: handleSelectAll,
+    onSelectOne: handleSelectOne,
+  });
 
   return (
     <ClientAuthCheck>
@@ -185,6 +348,17 @@ export default function TopicsManagementPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="p-4 border rounded-lg bg-muted/50">
+          <BulkActions
+            selectedCount={selectedIds.length}
+            onAction={handleBulkAction}
+            disabled={bulkProcessing}
+          />
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -242,6 +416,9 @@ export default function TopicsManagementPage() {
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
+                  <th className="w-12 p-4">
+                    <bulkSelector.HeaderCheckbox />
+                  </th>
                   <th className="text-left p-4 font-medium">Title</th>
                   <th className="text-left p-4 font-medium">Slug</th>
                   <th className="text-left p-4 font-medium">Locale</th>
@@ -257,6 +434,9 @@ export default function TopicsManagementPage() {
                     key={item.topic.id}
                     className="border-t hover:bg-muted/50 transition-all duration-200"
                   >
+                    <td className="p-4">
+                      <bulkSelector.RowCheckbox id={item.topic.id} />
+                    </td>
                     <td className="p-4 font-medium">{item.topic.title}</td>
                     <td className="p-4 text-sm text-muted-foreground">
                       {item.topic.slug}
@@ -339,6 +519,34 @@ export default function TopicsManagementPage() {
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          
+          {/* Impact Summary */}
+          {deleteImpact && (
+            <div className="my-4 p-4 border rounded-lg bg-muted/50">
+              <h4 className="font-semibold mb-2 text-sm">Impact Summary</h4>
+              <p className="text-sm text-muted-foreground mb-2">
+                The following records will be permanently deleted:
+              </p>
+              <ul className="space-y-1 text-sm">
+                <li className="flex items-center gap-2">
+                  <span className="font-medium">Questions:</span>
+                  <span className="text-muted-foreground">{deleteImpact.questions}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="font-medium">Articles:</span>
+                  <span className="text-muted-foreground">{deleteImpact.articles}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="font-medium">FAQ Items:</span>
+                  <span className="text-muted-foreground">{deleteImpact.faqItems}</span>
+                </li>
+              </ul>
+              <p className="text-sm text-destructive font-medium mt-3">
+                Total: {deleteImpact.questions + deleteImpact.articles + deleteImpact.faqItems + 1} records
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -359,6 +567,113 @@ export default function TopicsManagementPage() {
                 </>
               ) : (
                 'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Operation Dialog */}
+      <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkAction === 'delete' && 'Bulk Delete Topics'}
+              {bulkAction === 'update-status' && 'Update Status'}
+              {bulkAction === 'add-tags' && 'Add Tags'}
+              {bulkAction === 'remove-tags' && 'Remove Tags'}
+              {bulkAction === 'export' && 'Export Topics'}
+              {bulkAction === 'import' && 'Import Topics'}
+            </DialogTitle>
+            <DialogDescription>
+              {bulkAction === 'delete' &&
+                `Are you sure you want to delete ${selectedIds.length} topics? This action cannot be undone.`}
+              {bulkAction === 'update-status' &&
+                `Update the status of ${selectedIds.length} topics.`}
+              {bulkAction === 'add-tags' &&
+                `Add tags to ${selectedIds.length} topics.`}
+              {bulkAction === 'remove-tags' &&
+                `Remove tags from ${selectedIds.length} topics.`}
+              {bulkAction === 'export' &&
+                `Export ${selectedIds.length} topics as JSON.`}
+              {bulkAction === 'import' &&
+                'Import topics from a JSON file.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {bulkProcessing && (
+            <BulkProgress
+              operation={bulkAction || 'operation'}
+              total={bulkProgress.total}
+              success={bulkProgress.success}
+              failed={bulkProgress.failed}
+              inProgress={bulkProcessing}
+            />
+          )}
+
+          {!bulkProcessing && (
+            <div className="space-y-4">
+              {bulkAction === 'update-status' && (
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    value={bulkStatusValue}
+                    onChange={(e) => setBulkStatusValue(e.target.value as 'DRAFT' | 'PUBLISHED')}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                  </select>
+                </div>
+              )}
+
+              {(bulkAction === 'add-tags' || bulkAction === 'remove-tags') && (
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={bulkTagsValue}
+                    onChange={(e) => setBulkTagsValue(e.target.value)}
+                    placeholder="tag1, tag2, tag3"
+                  />
+                </div>
+              )}
+
+              {bulkAction === 'import' && (
+                <div className="space-y-2">
+                  <Label htmlFor="file">JSON File</Label>
+                  <Input
+                    id="file"
+                    type="file"
+                    accept=".json"
+                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDialogOpen(false)}
+              disabled={bulkProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={bulkAction === 'delete' ? 'destructive' : 'default'}
+              onClick={executeBulkOperation}
+              disabled={bulkProcessing}
+            >
+              {bulkProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm'
               )}
             </Button>
           </DialogFooter>

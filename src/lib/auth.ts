@@ -1,5 +1,8 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { UserService } from '@/lib/services/user.service';
+
+const userService = new UserService();
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,18 +13,26 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Validate against environment variables
-        if (
-          credentials?.email === process.env.ADMIN_EMAIL &&
-          credentials?.password === process.env.ADMIN_PASSWORD
-        ) {
-          return {
-            id: '1',
-            email: credentials?.email || '',
-            name: 'Admin',
-          };
+        if (!credentials?.email || !credentials?.password) {
+          return null;
         }
-        return null;
+
+        // Authenticate user using the User model
+        const user = await userService.authenticateUser(
+          credentials.email,
+          credentials.password
+        );
+
+        if (!user) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
       },
     }),
   ],
@@ -32,18 +43,21 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        (session.user as any).role = token.role;
       }
       return session;
     },
   },
   session: {
     strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

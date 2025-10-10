@@ -103,4 +103,177 @@ export class ContentService {
     // (Requirements 4.5, 4.6, 4.7, 4.8, 4.9)
     return this.repository.findTopics(filters);
   }
+
+  /**
+   * Bulk delete topics
+   * Requirements: 10.2, 10.6
+   */
+  async bulkDeleteTopics(topicIds: string[]): Promise<{ success: number; failed: number }> {
+    try {
+      const deletedCount = await this.repository.bulkDeleteTopics(topicIds);
+      return {
+        success: deletedCount,
+        failed: topicIds.length - deletedCount,
+      };
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk update topics
+   * Requirements: 10.3, 10.4, 10.6
+   */
+  async bulkUpdateTopics(
+    topicIds: string[],
+    updates: {
+      status?: 'DRAFT' | 'PUBLISHED';
+      tags?: {
+        add?: string[];
+        remove?: string[];
+      };
+    }
+  ): Promise<{ success: number; failed: number }> {
+    try {
+      let successCount = 0;
+
+      // Update status if provided
+      if (updates.status) {
+        const updatedCount = await this.repository.bulkUpdateTopicStatus(topicIds, updates.status);
+        successCount = updatedCount;
+      }
+
+      // Add tags if provided
+      if (updates.tags?.add && updates.tags.add.length > 0) {
+        await this.repository.bulkAddTags(topicIds, updates.tags.add);
+        if (!updates.status) successCount = topicIds.length;
+      }
+
+      // Remove tags if provided
+      if (updates.tags?.remove && updates.tags.remove.length > 0) {
+        await this.repository.bulkRemoveTags(topicIds, updates.tags.remove);
+        if (!updates.status) successCount = topicIds.length;
+      }
+
+      return {
+        success: successCount,
+        failed: topicIds.length - successCount,
+      };
+    } catch (error) {
+      console.error('Bulk update failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export topics
+   * Requirements: 10.7
+   */
+  async exportTopics(filters: {
+    topicIds?: string[];
+    locale?: string;
+    tag?: string;
+    status?: 'DRAFT' | 'PUBLISHED';
+  }): Promise<UnifiedTopic[]> {
+    return this.repository.exportTopics(filters);
+  }
+
+  /**
+   * Import topics
+   * Requirements: 10.8
+   */
+  async importTopics(
+    topics: Array<{
+      slug: string;
+      title: string;
+      locale: string;
+      tags: string[];
+      mainQuestion: { text: string };
+      article: { content: string; status: 'DRAFT' | 'PUBLISHED' };
+      faqItems: Array<{ question: string; answer: string; order: number }>;
+    }>,
+    mode: 'create' | 'upsert'
+  ): Promise<{ success: number; failed: number; errors: Array<{ slug: string; error: string }> }> {
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as Array<{ slug: string; error: string }>,
+    };
+
+    for (const topicData of topics) {
+      try {
+        if (mode === 'create') {
+          // Check if topic already exists
+          const existing = await this.repository.findTopicBySlug(topicData.slug);
+          if (existing) {
+            throw new Error(`Topic with slug "${topicData.slug}" already exists`);
+          }
+        }
+
+        // Upsert topic
+        const topic = await this.repository.upsertTopic({
+          slug: topicData.slug,
+          title: topicData.title,
+          locale: topicData.locale,
+          tags: topicData.tags,
+        });
+
+        // Upsert primary question
+        await this.repository.upsertPrimaryQuestion(topic.id, topicData.mainQuestion.text);
+
+        // Upsert article
+        await this.repository.upsertArticle(topic.id, {
+          content: topicData.article.content,
+          status: topicData.article.status,
+        });
+
+        // Replace FAQ items
+        await this.repository.replaceFAQItems(topic.id, topicData.faqItems);
+
+        results.success++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          slug: topicData.slug,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Delete a topic by slug
+   * Requirements: 1.5, 1.6, 1.7
+   */
+  async deleteTopic(slug: string): Promise<{
+    success: boolean;
+    impact: {
+      questions: number;
+      articles: number;
+      faqItems: number;
+    };
+  }> {
+    try {
+      // Get impact summary before deletion
+      const impact = await this.repository.getTopicImpactSummary(slug);
+      
+      if (!impact) {
+        throw new Error('Topic not found');
+      }
+
+      // Delete the topic (cascade delete will handle related records)
+      await this.repository.deleteTopicBySlug(slug);
+
+      return {
+        success: true,
+        impact,
+      };
+    } catch (error) {
+      console.error('Delete topic failed:', error);
+      throw error;
+    }
+  }
 }

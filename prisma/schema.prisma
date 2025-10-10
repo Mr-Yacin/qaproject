@@ -88,3 +88,159 @@ model IngestJob {
   @@index([status])
   @@index([createdAt])
 }
+
+// CMS Models
+
+// Site-wide settings
+model SiteSettings {
+  id             String   @id @default(cuid())
+  siteName       String   @default("Q&A Article FAQ")
+  logoUrl        String?
+  faviconUrl     String?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  socialLinks    Json?    // {twitter, facebook, linkedin, etc.}
+  customCss      String?  @db.Text
+  customJs       String?  @db.Text
+  updatedAt      DateTime @updatedAt
+  updatedBy      String?
+}
+
+// Custom pages (About, Contact, etc.)
+model Page {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  content        String        @db.Text
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdBy      String?
+  updatedBy      String?
+
+  @@index([slug])
+  @@index([status])
+}
+
+// Navigation menu items
+model MenuItem {
+  id         String     @id @default(cuid())
+  label      String
+  url        String
+  order      Int
+  parentId   String?
+  isExternal Boolean    @default(false)
+  openNewTab Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  parent   MenuItem?  @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuHierarchy")
+
+  @@index([order])
+  @@index([parentId])
+}
+
+// Footer configuration
+model FooterColumn {
+  id        String       @id @default(cuid())
+  title     String
+  order     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  links FooterLink[]
+
+  @@index([order])
+}
+
+model FooterLink {
+  id        String       @id @default(cuid())
+  columnId  String
+  label     String
+  url       String
+  order     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  column FooterColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@index([columnId, order])
+}
+
+model FooterSettings {
+  id            String   @id @default(cuid())
+  copyrightText String
+  socialLinks   Json?    // {twitter, facebook, linkedin, etc.}
+  updatedAt     DateTime @updatedAt
+}
+
+// Media library
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int      // in bytes
+  url          String
+  thumbnailUrl String?
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+// User management with roles
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String     // hashed
+  name      String
+  role      UserRole   @default(VIEWER)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// Audit logging
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String
+  action     AuditAction
+  entityType String      // "Topic", "Page", "Settings", etc.
+  entityId   String?
+  details    Json?       // before/after values
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType])
+  @@index([createdAt])
+}

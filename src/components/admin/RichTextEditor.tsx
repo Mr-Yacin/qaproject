@@ -4,6 +4,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
 import {
   Bold,
   Italic,
@@ -15,6 +18,16 @@ import {
   Link2,
   Image as ImageIcon,
   Code,
+  Strikethrough,
+  UnderlineIcon,
+  Quote,
+  Minus,
+  Highlighter,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Undo,
+  Redo,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useState } from 'react';
@@ -55,6 +68,13 @@ export function RichTextEditor({
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg',
         },
+      }),
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Highlight.configure({
+        multicolor: false,
       }),
     ],
     content,
@@ -248,6 +268,32 @@ export function RichTextEditor({
     <div className="border rounded-lg overflow-hidden">
       {/* Toolbar */}
       <div className="bg-gray-50 border-b p-2 flex flex-wrap gap-1">
+        {/* Undo/Redo */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          title="Undo"
+        >
+          <Undo className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          title="Redo"
+        >
+          <Redo className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        {/* Text Formatting */}
         <Button
           type="button"
           variant="ghost"
@@ -268,6 +314,39 @@ export function RichTextEditor({
           title="Italic"
         >
           <Italic className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className={editor.isActive('underline') ? 'bg-gray-200' : ''}
+          title="Underline"
+        >
+          <UnderlineIcon className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={editor.isActive('strike') ? 'bg-gray-200' : ''}
+          title="Strikethrough"
+        >
+          <Strikethrough className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleHighlight().run()}
+          className={editor.isActive('highlight') ? 'bg-gray-200' : ''}
+          title="Highlight"
+        >
+          <Highlighter className="h-4 w-4" />
         </Button>
 
         <div className="w-px bg-gray-300 mx-1" />
@@ -331,6 +410,78 @@ export function RichTextEditor({
 
         <div className="w-px bg-gray-300 mx-1" />
 
+        {/* Text Alignment */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          className={editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
+          title="Align Left"
+        >
+          <AlignLeft className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          className={editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
+          title="Align Center"
+        >
+          <AlignCenter className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          className={editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
+          title="Align Right"
+        >
+          <AlignRight className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        {/* Block Elements */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
+          title="Blockquote"
+        >
+          <Quote className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          title="Horizontal Rule"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          className={editor.isActive('codeBlock') ? 'bg-gray-200' : ''}
+          title="Code Block"
+        >
+          <Code className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px bg-gray-300 mx-1" />
+
+        {/* Links and Images */}
         <Button
           type="button"
           variant="ghost"
@@ -350,19 +501,6 @@ export function RichTextEditor({
           title="Add Image"
         >
           <ImageIcon className="h-4 w-4" />
-        </Button>
-
-        <div className="w-px bg-gray-300 mx-1" />
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={editor.isActive('codeBlock') ? 'bg-gray-200' : ''}
-          title="Code Block"
-        >
-          <Code className="h-4 w-4" />
         </Button>
 
         <div className="flex-1" />

@@ -25,6 +25,16 @@
 #### `/src/components` - React Components
 - `ui/` - Reusable UI components (shadcn/ui pattern)
 - `admin/` - Admin-specific components
+  - `layout/` - Admin sidebar, header, breadcrumbs
+  - `settings/` - Site settings forms
+  - `pages/` - Page management components
+  - `menus/` - Menu builder components
+  - `footer/` - Footer configuration components
+  - `media/` - Media library components
+  - `users/` - User management components
+  - `audit/` - Audit log components
+  - `cache/` - Cache management components
+  - `bulk/` - Bulk operation components
 - `public/` - Public-facing components
 
 #### `/src/types` - TypeScript Definitions

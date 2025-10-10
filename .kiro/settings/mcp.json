@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "Context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "ctx7sk-9cd93cbe-3aa1-4994-9836-818ecd59a13b"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [],
+      "disabledTools": [
+        "resolve-library-id"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "disabled": false
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [],
+      "disabledTools": []
+    }
+  }
+}
