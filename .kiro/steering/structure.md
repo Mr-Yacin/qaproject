@@ -1,176 +1,155 @@
-# Project Structure & Conventions
+# Project Structure & Organization
 
-## Directory Organization
+## Root Level Organization
 
-### `/src` - Application Source Code
+### Configuration Files
+- `package.json` - Dependencies and npm scripts
+- `tsconfig.json` - TypeScript configuration with strict mode
+- `next.config.js` - Next.js configuration with performance optimizations
+- `tailwind.config.ts` - Tailwind CSS configuration with custom design system
+- `vitest.config.ts` - Testing configuration
+- `.eslintrc.json` - ESLint rules for Next.js and TypeScript
+- `docker-compose.yml` - Docker development environment
+- `Dockerfile` - Production container configuration
 
-#### `/src/app` - Next.js App Router
-- **File-based routing**: Each folder with `route.ts` is an endpoint
-- **Route groups**: `(public)` for public pages, `admin` for protected pages
-- **API routes**: `/src/app/api/[endpoint]/route.ts`
-- **Layouts**: `layout.tsx` for shared layouts
-- **Metadata**: `robots.ts`, `sitemap.ts` for SEO
+### Core Directories
 
-#### `/src/lib` - Shared Libraries (Organized by Concern)
-- `security/` - HMAC verification, timing-safe comparison
-- `validation/` - Zod schemas for request/response validation
-- `services/` - Business logic layer (e.g., `content.service.ts`)
-- `repositories/` - Data access layer (e.g., `content.repository.ts`)
-- `api/` - API client utilities
-- `utils/` - General utilities
-- `tiptap/` - Rich text editor configuration
-- `db.ts` - Prisma client singleton
-- `auth.ts` - NextAuth configuration
+#### `/src` - Application Source Code
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API route handlers
+│   │   ├── ingest/        # POST /api/ingest - Webhook ingestion
+│   │   ├── topics/        # GET /api/topics - Public API
+│   │   ├── revalidate/    # POST /api/revalidate - Cache management
+│   │   └── admin/         # Admin API endpoints
+│   ├── admin/             # Admin interface pages
+│   └── (public)/          # Public-facing pages
+├── components/            # React components
+│   ├── ui/               # Reusable UI components (Radix-based)
+│   ├── admin/            # Admin-specific components
+│   └── forms/            # Form components with validation
+├── lib/                  # Utility libraries and services
+│   ├── security/         # HMAC verification, timing-safe comparison
+│   ├── validation/       # Zod schemas
+│   ├── services/         # Business logic layer
+│   ├── repositories/     # Data access layer
+│   └── db.ts            # Prisma client singleton
+├── hooks/                # Custom React hooks
+├── contexts/             # React context providers
+└── types/                # TypeScript type definitions
+```
 
-#### `/src/components` - React Components
-- `ui/` - Reusable UI components (shadcn/ui pattern)
-- `admin/` - Admin-specific components
-  - `layout/` - Admin sidebar, header, breadcrumbs
-  - `settings/` - Site settings forms
-  - `pages/` - Page management components
-  - `menus/` - Menu builder components
-  - `footer/` - Footer configuration components
-  - `media/` - Media library components
-  - `users/` - User management components
-  - `audit/` - Audit log components
-  - `cache/` - Cache management components
-  - `bulk/` - Bulk operation components
-- `public/` - Public-facing components
-
-#### `/src/types` - TypeScript Definitions
-- `api.ts` - API request/response types
-- `next-auth.d.ts` - NextAuth type extensions
-
-#### `/src/hooks` - React Hooks
-- Custom hooks like `use-toast.ts`
-
-### `/prisma` - Database
-- `schema.prisma` - Database schema definition
+#### `/prisma` - Database Schema & Migrations
+- `schema.prisma` - Complete database schema with indexes
 - `migrations/` - Database migration files
+- `seed.ts` - Database seeding script
 
-### `/tests` - Test Code (Organized by Type)
-- `unit/` - Pure unit tests (mocked dependencies)
-  - `unit/api/` - API logic unit tests
-  - `unit/lib/` - Library unit tests
-- `integration/` - Integration tests (real database)
-- `e2e/` - End-to-end tests (full workflows)
-- `utils/` - Test utilities and helpers
-- `setup.ts` - Vitest setup file
+#### `/docs` - Comprehensive Documentation
+```
+docs/
+├── setup/                # Installation and configuration guides
+├── architecture/         # System design documentation
+├── api/                  # API reference documentation
+├── admin/                # Admin interface guides
+├── testing/              # Testing procedures and guidelines
+└── reports/              # Test reports and audit results
+```
 
-### `/scripts` - Utility Scripts (Organized by Function)
-- `test/` - Test execution scripts (prefix: `test-`)
-- `verify/` - Configuration verification scripts (prefix: `verify-`)
-- `performance/` - Performance testing scripts
-- `README.md` - Script documentation
+#### `/tests` - Test Suite Organization
+```
+tests/
+├── unit/                 # Unit tests
+│   ├── api/             # API logic tests
+│   └── lib/             # Library function tests
+├── integration/          # Integration tests
+├── e2e/                 # End-to-end tests
+├── utils/               # Test utilities and helpers
+└── setup.ts             # Test environment setup
+```
 
-### `/docs` - Documentation (Organized by Purpose)
-- `setup/` - Installation and configuration guides
-- `architecture/` - System design and architecture docs
-- `testing/` - Testing guides and procedures
-- `reports/` - Test reports and audit results
-- Each subdirectory has a `README.md` index
+#### `/scripts` - Utility Scripts
+```
+scripts/
+├── test/                # Test execution scripts
+├── verify/              # Feature verification scripts
+└── performance/         # Performance testing scripts
+```
 
-### `/test-requests` - API Testing Examples
-- Example JSON payloads
+#### `/test-requests` - API Testing Examples
 - Postman collections
-- Test scripts for manual API testing
+- cURL examples
+- Security test scripts
+- Sample request/response data
 
-### `/public` - Static Assets
-- `uploads/` - User-uploaded files
+## File Naming Conventions
 
-## Naming Conventions
+### Components
+- **UI Components**: PascalCase (e.g., `Button.tsx`, `DataTable.tsx`)
+- **Page Components**: PascalCase matching route structure
+- **Hook Files**: camelCase with `use` prefix (e.g., `useAuth.ts`)
 
-### Files
-- **Components**: PascalCase (e.g., `TopicList.tsx`)
-- **Utilities**: kebab-case (e.g., `content.service.ts`)
-- **Tests**: `*.test.ts` or `*.spec.ts`
-- **API Routes**: `route.ts` (Next.js convention)
-- **Documentation**: kebab-case (e.g., `getting-started.md`)
+### API Routes
+- **Route Handlers**: `route.ts` in App Router structure
+- **Dynamic Routes**: `[slug]/route.ts` for parameterized endpoints
+- **Nested Routes**: Follow directory structure matching URL paths
 
-### Code
-- **Variables/Functions**: camelCase
-- **Types/Interfaces**: PascalCase
-- **Constants**: UPPER_SNAKE_CASE for true constants
-- **Database Models**: PascalCase (Prisma convention)
+### Database & Types
+- **Prisma Schema**: `schema.prisma` with clear model definitions
+- **Type Files**: `*.types.ts` or within `/types` directory
+- **Validation Schemas**: `schemas.ts` with Zod definitions
 
-## Architecture Patterns
+## Code Organization Patterns
 
 ### Layered Architecture
-1. **Route Handlers** (`src/app/api/*/route.ts`) - HTTP layer
-2. **Services** (`src/lib/services/`) - Business logic
-3. **Repositories** (`src/lib/repositories/`) - Data access
-4. **Prisma Client** (`src/lib/db.ts`) - Database
+1. **API Layer**: Route handlers in `/app/api`
+2. **Service Layer**: Business logic in `/lib/services`
+3. **Repository Layer**: Data access in `/lib/repositories`
+4. **Validation Layer**: Zod schemas in `/lib/validation`
 
-### Key Principles
-- **Separation of concerns**: Each layer has a single responsibility
-- **Dependency injection**: Pass dependencies explicitly
-- **Type safety**: Use TypeScript and Zod for validation
-- **Security first**: Validate all inputs, use HMAC for webhooks
-- **Caching**: Use Next.js cache tags for efficient invalidation
+### Component Structure
+- **Atomic Design**: UI components follow atomic design principles
+- **Feature-Based**: Admin components grouped by functionality
+- **Shared Components**: Reusable components in `/components/ui`
 
-## Code Style
+### Import Conventions
+- **Absolute Imports**: Use `@/` alias for src directory imports
+- **Relative Imports**: Only for closely related files
+- **Barrel Exports**: Use index files for clean imports
 
-### TypeScript
-- Strict mode enabled
-- Avoid `any` type - use proper typing
-- Define interfaces for all data structures
-- Use Zod for runtime validation
+## Environment & Configuration
 
-### ESLint Rules
-- `@typescript-eslint/no-explicit-any`: warn
-- `@typescript-eslint/no-unused-vars`: warn
-- `react-hooks/exhaustive-deps`: warn
-- `react/no-unescaped-entities`: off
+### Environment Files
+- `.env.example` - Template with all required variables
+- `.env` - Local development environment (gitignored)
+- Environment variables follow `SCREAMING_SNAKE_CASE`
 
-### Imports
-- Use path alias: `@/` for `src/`
-- Group imports: external, internal, types
-- Prefer named exports over default exports
+### Configuration Hierarchy
+1. **Next.js Config**: Performance and build optimizations
+2. **Tailwind Config**: Design system and responsive breakpoints
+3. **TypeScript Config**: Strict typing with path aliases
+4. **ESLint Config**: Code quality and consistency rules
 
-## Environment Variables
+## Deployment Structure
 
-Required variables (see `.env.example`):
-- `DATABASE_URL` - PostgreSQL connection string
-- `INGEST_API_KEY` - Static API key for protected endpoints
-- `INGEST_WEBHOOK_SECRET` - Secret for HMAC signature verification
-- `NEXTAUTH_SECRET` - NextAuth session secret
-- `NEXTAUTH_URL` - Application URL
+### Docker Configuration
+- **Multi-stage Dockerfile**: Optimized for production
+- **docker-compose.yml**: Development environment setup
+- **Standalone Output**: Next.js standalone mode for containers
 
-## Common Patterns
+### Build Artifacts
+- `.next/` - Next.js build output (gitignored)
+- `node_modules/` - Dependencies (gitignored)
+- `prisma/migrations/` - Database migrations (tracked)
 
-### API Route Structure
-```typescript
-export async function POST(request: Request) {
-  // 1. Validate authentication
-  // 2. Parse and validate request body with Zod
-  // 3. Call service layer
-  // 4. Return JSON response with proper status code
-}
-```
+## Documentation Standards
 
-### Service Layer
-```typescript
-// Business logic, no HTTP concerns
-export async function createTopic(data: TopicInput) {
-  // Validate business rules
-  // Call repository layer
-  // Return domain objects
-}
-```
+### Code Documentation
+- **JSDoc Comments**: For complex functions and APIs
+- **README Files**: In each major directory explaining purpose
+- **Type Annotations**: Comprehensive TypeScript typing
 
-### Repository Layer
-```typescript
-// Data access only, uses Prisma
-export async function findTopicBySlug(slug: string) {
-  return prisma.topic.findUnique({ where: { slug } });
-}
-```
-
-## Testing Strategy
-
-- **Unit tests**: Test individual functions with mocked dependencies
-- **Integration tests**: Test API endpoints with real database
-- **E2E tests**: Test complete user workflows
-- Test timeout: 10 seconds (for database operations)
-- Use `describe` blocks to group related tests
-- Test naming: `should [expected behavior] when [condition]`
+### API Documentation
+- **OpenAPI/Swagger**: API specifications
+- **Example Requests**: In `/test-requests` directory
+- **Response Schemas**: Documented with Zod schemas
