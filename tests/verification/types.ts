@@ -83,6 +83,49 @@ export interface PerformanceMetrics {
   errorRate: number;
 }
 
+export interface BenchmarkResult {
+  testName: string;
+  measurements: Array<{
+    startTime: number;
+    endTime: number;
+    duration: number;
+    memoryUsage?: NodeJS.MemoryUsage;
+  }>;
+  statistics: {
+    min: number;
+    max: number;
+    average: number;
+    median: number;
+    p95: number;
+    p99: number;
+  };
+  throughput: number;
+  errorRate: number;
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+}
+
+export interface CacheTestResult {
+  testName: string;
+  cacheHitRate: number;
+  cacheMissRate: number;
+  averageHitResponseTime: number;
+  averageMissResponseTime: number;
+  cacheEffectiveness: number;
+  totalRequests: number;
+  cacheHits: number;
+  cacheMisses: number;
+  measurements: Array<{
+    requestId: string;
+    timestamp: number;
+    responseTime: number;
+    cacheStatus: 'HIT' | 'MISS' | 'STALE' | 'UNKNOWN';
+    headers: Record<string, string>;
+    url: string;
+  }>;
+}
+
 export interface ExpectedAPIResponse {
   status: number;
   headers?: Record<string, string>;
