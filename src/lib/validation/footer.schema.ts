@@ -45,6 +45,7 @@ export const UpdateFooterColumnSchema = z.object({
 /**
  * Footer link creation schema
  * Validates input for creating a new footer link
+ * Accepts both full URLs (http/https) and relative paths (starting with /)
  */
 export const CreateFooterLinkSchema = z.object({
   columnId: z.string()
@@ -54,7 +55,11 @@ export const CreateFooterLinkSchema = z.object({
     .max(50, 'Label must be less than 50 characters'),
   url: z.string()
     .min(1, 'URL is required')
-    .max(500, 'URL must be less than 500 characters'),
+    .max(500, 'URL must be less than 500 characters')
+    .refine((url) => {
+      // Allow full URLs (http/https) or relative paths starting with /
+      return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+    }, 'URL must be a full URL (https://...) or a relative path starting with /'),
   order: z.number()
     .int('Order must be an integer')
     .min(0, 'Order must be non-negative'),
@@ -64,6 +69,7 @@ export const CreateFooterLinkSchema = z.object({
  * Footer link update schema
  * Validates input for updating an existing footer link
  * All fields are optional for partial updates
+ * Accepts both full URLs (http/https) and relative paths (starting with /)
  */
 export const UpdateFooterLinkSchema = z.object({
   columnId: z.string().optional(),
@@ -74,6 +80,10 @@ export const UpdateFooterLinkSchema = z.object({
   url: z.string()
     .min(1)
     .max(500)
+    .refine((url) => {
+      // Allow full URLs (http/https) or relative paths starting with /
+      return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+    }, 'URL must be a full URL (https://...) or a relative path starting with /')
     .optional(),
   order: z.number()
     .int()

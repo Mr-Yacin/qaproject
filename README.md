@@ -1,9 +1,10 @@
 # Q&A Article FAQ API
 
-A secure, API-first backend for managing Q&A content, articles, and FAQs. Built with Next.js 14+ App Router, TypeScript, Prisma ORM, and PostgreSQL.
+A secure, full-stack content management system for managing Q&A content, articles, FAQs, and site-wide settings with both API-first ingestion and a comprehensive admin interface. Built with Next.js 14+ App Router, TypeScript, Prisma ORM, and PostgreSQL.
 
 ## Features
 
+### Core Features
 - 🔒 **Secure Webhook Ingestion**: HMAC-SHA256 signature verification for content updates
 - 📚 **Content Management**: Topics, questions, articles, and FAQ items
 - 🔍 **Public Read API**: Retrieve published content by slug or filtered listings
@@ -11,15 +12,26 @@ A secure, API-first backend for managing Q&A content, articles, and FAQs. Built 
 - ✅ **Type-Safe**: Full TypeScript support with Zod validation
 - 🧪 **Tested**: Comprehensive test coverage with Vitest
 
+### Admin CMS Features
+- ⚙️ **Site Settings**: Manage logo, site name, SEO metadata, and branding
+- 📄 **Custom Pages**: Create and manage pages (About, Contact, Privacy, etc.) with rich text editor
+- 🧭 **Navigation Management**: Dynamic menu builder with nested items and drag-and-drop
+- 🦶 **Footer Management**: Configurable footer columns and links
+- 🖼️ **Media Library**: Upload, organize, and manage images and files
+- 👥 **User Management**: Role-based access control (Admin, Editor, Viewer)
+- 📊 **Audit Logging**: Track all admin actions with detailed logs
+- 🗂️ **Bulk Operations**: Bulk delete, update, export/import for topics
+- 💾 **Cache Management**: View cache stats and clear cache on-demand
+
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Admin Panel](#admin-panel)
 - [Documentation](#documentation)
 - [API Documentation](#api-documentation)
-  - [POST /api/ingest](#post-apiingest)
-  - [GET /api/topics](#get-apitopics)
-  - [GET /api/topics/[slug]](#get-apitopicsslug)
-  - [POST /api/revalidate](#post-apirevalidate)
+  - [Public API](#public-api)
+  - [Webhook API](#webhook-api)
+  - [Admin API](#admin-api)
 - [Authentication](#authentication)
 - [Project Structure](#project-structure)
 
@@ -46,6 +58,27 @@ Visit `http://localhost:3000/api/topics` to verify the API is running.
 
 For detailed setup instructions, see the [Getting Started Guide](docs/setup/getting-started.md).
 
+## Admin Panel
+
+Access the admin CMS at `http://localhost:3000/admin` to manage your content.
+
+**Default Admin Credentials** (change after first login):
+- Email: `admin@example.com`
+- Password: `admin123`
+
+**Admin Features:**
+- Site settings and branding
+- Custom page management with rich text editor
+- Navigation menu builder
+- Footer configuration
+- Media library
+- User management with roles
+- Audit log viewer
+- Cache management
+- Bulk operations
+
+For complete admin documentation, see the [Admin User Guide](docs/admin/admin-user-guide.md).
+
 ## Documentation
 
 Comprehensive documentation is available in the `docs/` directory:
@@ -56,8 +89,13 @@ Comprehensive documentation is available in the `docs/` directory:
 - [Database Setup](docs/setup/database-setup.md) - Database configuration and management
 - [Docker Setup](docs/setup/docker-setup.md) - Docker deployment and testing
 
+### Admin Guides
+- [Admin User Guide](docs/admin/admin-user-guide.md) - Complete admin CMS guide
+- [Admin API Reference](docs/api/admin-api-reference.md) - Admin API endpoints
+
 ### Architecture
 - [Architecture Overview](docs/architecture/README.md) - System design and components
+- [Database Schema](docs/architecture/database-schema.md) - Complete database documentation
 - [Caching Strategy](docs/architecture/caching-strategy.md) - Cache implementation details
 - [Performance Optimization](docs/architecture/performance-optimization.md) - Performance features
 - [Accessibility](docs/architecture/accessibility.md) - Accessibility implementation
@@ -73,19 +111,42 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ## API Documentation
 
-### Authentication
+The system provides three types of APIs:
 
-Protected endpoints (`/api/ingest` and `/api/revalidate`) require three headers:
+1. **Public API**: Read-only access to published content (no authentication)
+2. **Webhook API**: Secure ingestion and revalidation (HMAC authentication)
+3. **Admin API**: Full CMS management (session authentication)
+
+For complete API documentation, see:
+- [Admin API Reference](docs/api/admin-api-reference.md) - All admin endpoints
+
+### Public API
+
+#### GET /api/topics
+
+List published topics with filtering and pagination.
+
+**Query Parameters:**
+- `locale` (string): Filter by language
+- `tag` (string): Filter by tag
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 20, max: 100)
+
+#### GET /api/topics/[slug]
+
+Get a complete topic with question, article, and FAQ items.
+
+### Webhook API
+
+Protected endpoints require HMAC-SHA256 signature verification.
+
+**Authentication Headers:**
 
 - `x-api-key`: Your static API key
 - `x-timestamp`: Current Unix timestamp in milliseconds
 - `x-signature`: HMAC-SHA256 signature
 
-See [Authentication](#authentication) section for details on generating signatures.
-
----
-
-### POST /api/ingest
+#### POST /api/ingest
 
 Ingest a complete topic package with question, article, and FAQ items.
 
@@ -154,127 +215,13 @@ Ingest a complete topic package with question, article, and FAQ items.
 - `500 Internal Server Error`: Server error
 
 **Notes**:
-- This endpoint is idempotent - sending the same payload multiple times produces the same result
-- Existing FAQ items are replaced (not merged) on each ingest
+- Idempotent operation
+- Existing FAQ items are replaced (not merged)
 - Topics are upserted by slug
 
----
-
-### GET /api/topics
-
-List topics with optional filtering and pagination.
-
-**Authentication**: Not required (public endpoint)
-
-**Query Parameters**:
-
-- `locale` (string, optional): Filter by language code (e.g., "en")
-- `tag` (string, optional): Filter by tag
-- `page` (number, optional): Page number (default: 1)
-- `limit` (number, optional): Items per page (default: 20, max: 100)
-
-**Example Request**:
-
-```
-GET /api/topics?locale=en&tag=security&page=1&limit=10
-```
-
-**Success Response** (200):
-
-```json
-{
-  "items": [
-    {
-      "id": "clx1234567890",
-      "slug": "how-to-reset-password",
-      "title": "How to Reset Your Password",
-      "locale": "en",
-      "tags": ["account", "security"],
-      "createdAt": "2024-01-15T10:30:00.000Z",
-      "updatedAt": "2024-01-15T10:30:00.000Z"
-    }
-  ],
-  "total": 42,
-  "page": 1,
-  "limit": 10,
-  "totalPages": 5
-}
-```
-
-**Notes**:
-- Only topics with at least one PUBLISHED article are included
-- Results are paginated for performance
-
----
-
-### GET /api/topics/[slug]
-
-Retrieve a complete topic with its question, article, and FAQ items.
-
-**Authentication**: Not required (public endpoint)
-
-**Example Request**:
-
-```
-GET /api/topics/how-to-reset-password
-```
-
-**Success Response** (200):
-
-```json
-{
-  "topic": {
-    "id": "clx1234567890",
-    "slug": "how-to-reset-password",
-    "title": "How to Reset Your Password",
-    "locale": "en",
-    "tags": ["account", "security"],
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-15T10:30:00.000Z"
-  },
-  "primaryQuestion": {
-    "id": "clx2234567890",
-    "text": "How do I reset my password?",
-    "isPrimary": true,
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-15T10:30:00.000Z"
-  },
-  "article": {
-    "id": "clx3234567890",
-    "content": "To reset your password, follow these steps...",
-    "status": "PUBLISHED",
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-15T10:30:00.000Z"
-  },
-  "faqItems": [
-    {
-      "id": "clx4234567890",
-      "question": "What if I don't receive the reset email?",
-      "answer": "Check your spam folder...",
-      "order": 0,
-      "createdAt": "2024-01-15T10:30:00.000Z",
-      "updatedAt": "2024-01-15T10:30:00.000Z"
-    }
-  ]
-}
-```
-
-**Error Responses**:
-
-- `404 Not Found`: Topic doesn't exist or has no published article
-- `500 Internal Server Error`: Server error
-
-**Notes**:
-- Only returns topics with PUBLISHED articles
-- FAQ items are sorted by the `order` field
-
----
-
-### POST /api/revalidate
+#### POST /api/revalidate
 
 Trigger cache revalidation for a specific tag.
-
-**Authentication**: Required
 
 **Request Body**:
 
@@ -301,11 +248,32 @@ Trigger cache revalidation for a specific tag.
 
 **Notes**:
 - Uses Next.js `revalidateTag()` for on-demand cache invalidation
-- Common tags: "topics", "topic:[slug]"
+- Common tags: "topics", "topic:[slug]", "pages", "menu", "footer", "settings"
+
+### Admin API
+
+Complete admin API documentation available at [Admin API Reference](docs/api/admin-api-reference.md).
+
+**Key Endpoints:**
+- `/api/admin/settings` - Site settings management
+- `/api/admin/pages` - Custom page CRUD
+- `/api/admin/menus` - Navigation menu management
+- `/api/admin/footer` - Footer configuration
+- `/api/admin/media` - Media library operations
+- `/api/admin/users` - User management
+- `/api/admin/audit-log` - Audit log access
+- `/api/admin/cache` - Cache management
+- `/api/admin/topics/bulk-*` - Bulk operations
+
+**Authentication**: Session-based via NextAuth.js
+
+**Authorization**: Role-based access control (Admin, Editor, Viewer)
 
 ---
 
 ## Authentication
+
+### Webhook Authentication
 
 Protected endpoints require HMAC-SHA256 signature verification to ensure request authenticity and integrity.
 
@@ -435,6 +403,35 @@ curl -X POST http://localhost:3000/api/ingest \
 - Always use HTTPS in production
 - Keep `INGEST_WEBHOOK_SECRET` confidential
 
+### Admin Authentication
+
+Admin endpoints use NextAuth.js session-based authentication:
+
+1. Log in at `/admin` with your credentials
+2. Session cookie is automatically included in requests
+3. Role-based access control enforces permissions
+
+**User Roles:**
+- **Admin**: Full access to all features
+- **Editor**: Content management only
+- **Viewer**: Read-only access
+
+See [Admin User Guide](docs/admin/admin-user-guide.md) for details.
+
+## Deployment
+
+Ready to deploy? Follow these guides:
+
+- [Quick Deployment Guide](DEPLOYMENT.md) - Quick reference for deployment
+- [Complete Migration Guide](docs/setup/migration-guide.md) - Detailed migration instructions
+- [Deployment Checklist](docs/setup/deployment-checklist.md) - Pre-deployment checklist
+- [Environment Variables](docs/setup/environment-variables.md) - Complete environment reference
+
+**Quick Verification:**
+```bash
+npm run verify:all  # Verify all features before deployment
+```
+
 ## Testing
 
 Run the test suite:
@@ -526,26 +523,25 @@ For detailed information about the folder structure and where to place new files
 
 ## Data Models
 
-### Topic
-- Unique slug identifier
-- Title, locale, tags
-- One-to-many: Questions, Articles, FAQ Items
+### Core Content Models
 
-### Question
-- Belongs to Topic
-- `isPrimary` flag for main question
+- **Topic**: Q&A topics with slug, title, locale, tags
+- **Question**: Questions associated with topics (isPrimary flag)
+- **Article**: Article content with DRAFT/PUBLISHED status
+- **FAQItem**: FAQ items with question, answer, and order
+- **IngestJob**: Audit log for webhook ingestion
 
-### Article
-- One-to-one with Topic
-- Content and status (DRAFT/PUBLISHED)
+### CMS Models
 
-### FAQItem
-- Belongs to Topic
-- Question, answer, and display order
+- **SiteSettings**: Global site configuration (logo, SEO, branding)
+- **Page**: Custom pages with rich content and SEO metadata
+- **MenuItem**: Hierarchical navigation menu structure
+- **FooterColumn/FooterLink**: Configurable footer
+- **Media**: File uploads with metadata and thumbnails
+- **User**: Admin users with role-based permissions
+- **AuditLog**: Activity tracking and audit trail
 
-### IngestJob
-- Audit log for ingestion operations
-- Stores payload and status (processing/completed/failed)
+For complete schema documentation, see [Database Schema](docs/architecture/database-schema.md).
 
 ## License
 

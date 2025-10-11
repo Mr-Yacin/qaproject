@@ -28,6 +28,9 @@ export class ContentService {
         title: payload.topic.title,
         locale: payload.topic.locale,
         tags: payload.topic.tags,
+        seoTitle: payload.topic.seoTitle,
+        seoDescription: payload.topic.seoDescription,
+        seoKeywords: payload.topic.seoKeywords,
       });
 
       // Upsert primary question (Requirement 3.3)
@@ -37,6 +40,9 @@ export class ContentService {
       await this.repository.upsertArticle(topic.id, {
         content: payload.article.content,
         status: payload.article.status,
+        seoTitle: payload.article.seoTitle,
+        seoDescription: payload.article.seoDescription,
+        seoKeywords: payload.article.seoKeywords,
       });
 
       // Replace FAQ items (Requirement 3.5)

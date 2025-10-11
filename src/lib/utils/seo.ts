@@ -277,17 +277,23 @@ export function generateBreadcrumbSchema(
 /**
  * Generates WebSite schema (JSON-LD) for the homepage
  * @param baseUrl - Base URL of the site
+ * @param siteName - Site name from settings
+ * @param description - Site description from settings
  * @returns JSON-LD WebSite schema object
  */
-export function generateWebSiteSchema(baseUrl?: string): object {
+export function generateWebSiteSchema(
+    baseUrl?: string,
+    siteName?: string,
+    description?: string
+): object {
     const siteUrl = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     return {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'Q&A CMS',
+        name: siteName || 'Q&A CMS',
         url: siteUrl,
-        description: 'Your comprehensive knowledge base for Q&A articles',
+        description: description || 'Your comprehensive knowledge base for Q&A articles',
         potentialAction: {
             '@type': 'SearchAction',
             target: {

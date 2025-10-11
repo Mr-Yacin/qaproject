@@ -11,6 +11,7 @@ import {
   UpdateMenuItemInput,
   ReorderMenuItemsInput,
 } from '@/lib/validation/menu.schema';
+import { NotFoundError, ValidationError } from '@/lib/errors';
 
 export class MenuItemNotFoundError extends Error {
   constructor(id: string) {
@@ -110,7 +111,7 @@ export class MenuService {
     if (data.parentId !== undefined) {
       // Check for circular reference (item cannot be its own parent)
       if (data.parentId === id) {
-        throw new CircularReferenceError();
+        throw new ValidationError('Cannot set a menu item as its own parent or descendant');
       }
 
       // If parentId is not null, validate parent exists

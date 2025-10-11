@@ -65,6 +65,10 @@ export default function EditTopicPage() {
           title: data.title,
           locale: data.locale,
           tags: data.tags,
+          thumbnailUrl: data.thumbnailUrl,
+          seoTitle: data.seoTitle,
+          seoDescription: data.seoDescription,
+          seoKeywords: data.seoKeywords,
         },
         mainQuestion: {
           text: data.mainQuestion,
@@ -72,6 +76,9 @@ export default function EditTopicPage() {
         article: {
           content: data.articleContent,
           status: data.articleStatus,
+          seoTitle: data.articleSeoTitle,
+          seoDescription: data.articleSeoDescription,
+          seoKeywords: data.articleSeoKeywords,
         },
         faqItems: data.faqItems.map((item) => ({
           question: item.question,
@@ -146,9 +153,16 @@ export default function EditTopicPage() {
     title: topic.topic.title,
     locale: topic.topic.locale,
     tags: topic.topic.tags,
+    thumbnailUrl: (topic.topic as any).thumbnailUrl || '',
     mainQuestion: topic.primaryQuestion?.text || topic.topic.title,
+    seoTitle: (topic.topic as any).seoTitle || '',
+    seoDescription: (topic.topic as any).seoDescription || '',
+    seoKeywords: (topic.topic as any).seoKeywords || [],
     articleContent: topic.article?.content || '',
     articleStatus: (topic.article?.status as 'DRAFT' | 'PUBLISHED') || 'DRAFT',
+    articleSeoTitle: (topic.article as any)?.seoTitle || '',
+    articleSeoDescription: (topic.article as any)?.seoDescription || '',
+    articleSeoKeywords: (topic.article as any)?.seoKeywords || [],
     faqItems: topic.faqItems.map((item) => ({
       question: item.question,
       answer: item.answer,

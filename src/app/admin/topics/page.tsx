@@ -419,6 +419,7 @@ export default function TopicsManagementPage() {
                   <th className="w-12 p-4">
                     <bulkSelector.HeaderCheckbox />
                   </th>
+                  <th className="text-left p-4 font-medium">Thumbnail</th>
                   <th className="text-left p-4 font-medium">Title</th>
                   <th className="text-left p-4 font-medium">Slug</th>
                   <th className="text-left p-4 font-medium">Locale</th>
@@ -436,6 +437,21 @@ export default function TopicsManagementPage() {
                   >
                     <td className="p-4">
                       <bulkSelector.RowCheckbox id={item.topic.id} />
+                    </td>
+                    <td className="p-4">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        {(item.topic as any).thumbnailUrl ? (
+                          <img
+                            src={(item.topic as any).thumbnailUrl}
+                            alt={item.topic.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Search className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 font-medium">{item.topic.title}</td>
                     <td className="p-4 text-sm text-muted-foreground">

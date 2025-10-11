@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/middleware/auth.middleware';
+import { requireRole } from '@/lib/middleware/auth.middleware';
+import { UnauthorizedError, ForbiddenError } from '@/lib/errors';
 import { UserRole } from '@prisma/client';
 import { PageService, PageNotFoundError, DuplicateSlugError } from '@/lib/services/page.service';
 import { UpdatePageSchema } from '@/lib/validation/page.schema';

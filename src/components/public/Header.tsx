@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Navigation } from './Navigation';
@@ -15,16 +16,22 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+interface SiteSettings {
+  siteName: string;
+  logoUrl: string | null;
+}
+
 interface HeaderProps {
   menuItems?: MenuItem[];
+  settings?: SiteSettings | null;
 }
 
 /**
  * Header Component
- * Main site header with dynamic navigation from database
- * Requirements: 4.1, 4.4, 4.7, 4.8
+ * Main site header with dynamic navigation and branding from database
+ * Requirements: 2.3, 2.4, 4.1, 4.4, 4.7, 4.8
  */
-export default function Header({ menuItems = [] }: HeaderProps) {
+export default function Header({ menuItems = [], settings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -50,10 +57,29 @@ export default function Header({ menuItems = [] }: HeaderProps) {
       >
         {/* Logo */}
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5" aria-label="Q&A CMS Home">
-            <span className="text-xl font-bold text-primary-600 md:text-2xl">
-              Q&A CMS
-            </span>
+          <Link 
+            href="/" 
+            className="-m-1.5 p-1.5 flex items-center gap-2" 
+            aria-label={`${settings?.siteName || 'Q&A CMS'} Home`}
+          >
+            {settings?.logoUrl ? (
+              <>
+                <Image
+                  src={settings.logoUrl}
+                  alt={`${settings.siteName} logo`}
+                  width={40}
+                  height={40}
+                  className="h-8 w-auto md:h-10"
+                />
+                <span className="text-xl font-bold text-primary-600 md:text-2xl">
+                  {settings.siteName}
+                </span>
+              </>
+            ) : (
+              <span className="text-xl font-bold text-primary-600 md:text-2xl">
+                {settings?.siteName || 'Q&A CMS'}
+              </span>
+            )}
           </Link>
         </div>
 

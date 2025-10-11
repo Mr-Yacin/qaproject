@@ -12,6 +12,10 @@ export class ContentRepository {
         title: string;
         locale: string;
         tags: string[];
+        thumbnailUrl?: string;
+        seoTitle?: string;
+        seoDescription?: string;
+        seoKeywords?: string[];
     }): Promise<Topic> {
         return prisma.topic.upsert({
             where: { slug: data.slug },
@@ -19,12 +23,20 @@ export class ContentRepository {
                 title: data.title,
                 locale: data.locale,
                 tags: data.tags,
+                thumbnailUrl: data.thumbnailUrl,
+                seoTitle: data.seoTitle,
+                seoDescription: data.seoDescription,
+                seoKeywords: data.seoKeywords || [],
             },
             create: {
                 slug: data.slug,
                 title: data.title,
                 locale: data.locale,
                 tags: data.tags,
+                thumbnailUrl: data.thumbnailUrl,
+                seoTitle: data.seoTitle,
+                seoDescription: data.seoDescription,
+                seoKeywords: data.seoKeywords || [],
             },
         });
     }
@@ -60,6 +72,10 @@ export class ContentRepository {
                 title: topic.title,
                 locale: topic.locale,
                 tags: topic.tags,
+                thumbnailUrl: topic.thumbnailUrl,
+                seoTitle: topic.seoTitle,
+                seoDescription: topic.seoDescription,
+                seoKeywords: topic.seoKeywords,
                 createdAt: topic.createdAt,
                 updatedAt: topic.updatedAt,
             },
@@ -124,6 +140,10 @@ export class ContentRepository {
                 title: topic.title,
                 locale: topic.locale,
                 tags: topic.tags,
+                thumbnailUrl: topic.thumbnailUrl,
+                seoTitle: topic.seoTitle,
+                seoDescription: topic.seoDescription,
+                seoKeywords: topic.seoKeywords,
                 createdAt: topic.createdAt,
                 updatedAt: topic.updatedAt,
             },
@@ -178,18 +198,30 @@ export class ContentRepository {
      */
     async upsertArticle(
         topicId: string,
-        data: { content: string; status: ContentStatus }
+        data: { 
+            content: string; 
+            status: ContentStatus;
+            seoTitle?: string;
+            seoDescription?: string;
+            seoKeywords?: string[];
+        }
     ): Promise<Article> {
         return prisma.article.upsert({
             where: { topicId },
             update: {
                 content: data.content,
                 status: data.status,
+                seoTitle: data.seoTitle,
+                seoDescription: data.seoDescription,
+                seoKeywords: data.seoKeywords || [],
             },
             create: {
                 topicId,
                 content: data.content,
                 status: data.status,
+                seoTitle: data.seoTitle,
+                seoDescription: data.seoDescription,
+                seoKeywords: data.seoKeywords || [],
             },
         });
     }
@@ -408,6 +440,10 @@ export class ContentRepository {
                 title: topic.title,
                 locale: topic.locale,
                 tags: topic.tags,
+                thumbnailUrl: topic.thumbnailUrl,
+                seoTitle: topic.seoTitle,
+                seoDescription: topic.seoDescription,
+                seoKeywords: topic.seoKeywords,
                 createdAt: topic.createdAt,
                 updatedAt: topic.updatedAt,
             },
@@ -490,6 +526,10 @@ export class ContentRepository {
                 title: topic.title,
                 locale: topic.locale,
                 tags: topic.tags,
+                thumbnailUrl: topic.thumbnailUrl,
+                seoTitle: topic.seoTitle,
+                seoDescription: topic.seoDescription,
+                seoKeywords: topic.seoKeywords,
                 createdAt: topic.createdAt,
                 updatedAt: topic.updatedAt,
             },
@@ -546,6 +586,10 @@ export class ContentRepository {
                 title: topic.title,
                 locale: topic.locale,
                 tags: topic.tags,
+                thumbnailUrl: topic.thumbnailUrl,
+                seoTitle: topic.seoTitle,
+                seoDescription: topic.seoDescription,
+                seoKeywords: topic.seoKeywords,
                 createdAt: topic.createdAt,
                 updatedAt: topic.updatedAt,
             },

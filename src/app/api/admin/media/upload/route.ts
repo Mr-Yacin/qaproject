@@ -3,15 +3,20 @@ import { mediaService } from '@/lib/services/media.service';
 import { requireRole } from '@/lib/middleware/auth.middleware';
 import { UserRole } from '@prisma/client';
 import { AuditService } from '@/lib/services/audit.service';
+import { rateLimit, RATE_LIMIT_CONFIGS, RateLimitError } from '@/lib/middleware/rate-limit.middleware';
 
 const auditService = new AuditService();
 
 /**
  * POST /api/admin/media/upload
- * Upload a media file
+ * Upload a media file with rate limiting
+ * Requirements: 6.1, 6.2, 6.5, 7.2 (rate limiting)
  */
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting for file uploads
+    await rateLimit(request, RATE_LIMIT_CONFIGS.UPLOAD);
+
     // Require ADMIN or EDITOR role
     const user = await requireRole([UserRole.ADMIN, UserRole.EDITOR]);
 
@@ -48,6 +53,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(media, { status: 201 });
   } catch (error: any) {
     console.error('Error uploading media:', error);
+
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: error.message },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': error.retryAfter.toString(),
+          },
+        }
+      );
+    }
 
     if (error.name === 'UnauthorizedError') {
       return NextResponse.json({ error: error.message }, { status: 401 });

@@ -12,7 +12,12 @@ import { Loader2 } from 'lucide-react';
 
 const footerLinkSchema = z.object({
   label: z.string().min(1, 'Label is required').max(50, 'Label must be 50 characters or less'),
-  url: z.string().min(1, 'URL is required').url('Must be a valid URL'),
+  url: z.string()
+    .min(1, 'URL is required')
+    .refine((url) => {
+      // Allow full URLs (http/https) or relative paths starting with /
+      return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+    }, 'URL must be a full URL (https://...) or a relative path starting with /'),
   order: z.number().int().min(0, 'Order must be 0 or greater'),
 });
 
@@ -92,14 +97,13 @@ export function FooterLinkForm({ link, onSave, onCancel }: FooterLinkFormProps) 
           </Label>
           <Input
             id="url"
-            type="url"
             {...register('url')}
-            placeholder="https://example.com/about"
+            placeholder="/about or https://example.com/about"
             aria-invalid={!!errors.url}
             aria-describedby={errors.url ? 'url-error' : undefined}
           />
           <p className="text-sm text-muted-foreground mt-1">
-            Full URL including https://
+            Use relative paths (e.g., /about, /contact) for internal pages or full URLs (https://...) for external links
           </p>
           {errors.url && (
             <p id="url-error" role="alert" className="text-sm text-red-600 mt-1">

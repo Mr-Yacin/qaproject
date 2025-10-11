@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { LogoUploader } from '@/components/admin/settings/LogoUploader';
 import { Loader2, Save } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { showErrorToast, showSuccessToast, handleFetchError } from '@/lib/errors';
 
 interface SettingsFormProps {
   settings: any;
@@ -19,7 +19,6 @@ interface SettingsFormProps {
  * Requirements: 2.1, 2.2, 2.3, 2.8
  */
 export function SettingsForm({ settings, onUpdate }: SettingsFormProps) {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     siteName: settings.siteName || '',
     logoUrl: settings.logoUrl || '',
@@ -108,11 +107,7 @@ export function SettingsForm({ settings, onUpdate }: SettingsFormProps) {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please fix the errors in the form',
-        variant: 'destructive',
-      });
+      showErrorToast('Please fix the errors in the form');
       return;
     }
 
@@ -143,24 +138,15 @@ export function SettingsForm({ settings, onUpdate }: SettingsFormProps) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update settings');
+        await handleFetchError(response);
       }
 
       const updatedSettings = await response.json();
       onUpdate(updatedSettings);
 
-      toast({
-        title: 'Success',
-        description: 'Settings updated successfully',
-      });
+      showSuccessToast('Settings updated successfully');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update settings',
-        variant: 'destructive',
-      });
-      console.error('Failed to update settings:', error);
+      showErrorToast(error, 'Failed to update settings');
     } finally {
       setSaving(false);
     }

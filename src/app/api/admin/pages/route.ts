@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/middleware/auth.middleware';
+import { requireRole } from '@/lib/middleware/auth.middleware';
 import { UserRole } from '@prisma/client';
-import { PageService, DuplicateSlugError } from '@/lib/services/page.service';
+import { PageService } from '@/lib/services/page.service';
 import { CreatePageSchema, PageQuerySchema } from '@/lib/validation/page.schema';
 import { AuditService } from '@/lib/services/audit.service';
 import { revalidateTag } from 'next/cache';
-import { z } from 'zod';
+import { handleAPIError } from '@/lib/errors';
 
 /**
  * GET /api/admin/pages
@@ -33,32 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error listing pages:', error);
-    return NextResponse.json(
-      { error: 'Failed to list pages' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }
 
@@ -103,38 +78,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newPage, { status: 201 });
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    if (error instanceof DuplicateSlugError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 409 }
-      );
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error creating page:', error);
-    return NextResponse.json(
-      { error: 'Failed to create page' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }

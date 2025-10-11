@@ -1,6 +1,7 @@
 'use client';
 
 import { FAQItem } from '@prisma/client';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   Accordion,
   AccordionContent,
@@ -19,8 +20,9 @@ interface FAQAccordionProps {
  * - Smooth animations
  * - Keyboard navigation (built into Radix UI)
  * - ARIA attributes for accessibility
+ * - HTML sanitization for XSS protection
  * 
- * Requirements: 1.3, 8.4
+ * Requirements: 1.3, 8.4, 3.9 (HTML sanitization)
  */
 export default function FAQAccordion({ items }: FAQAccordionProps) {
   if (!items || items.length === 0) {
@@ -33,30 +35,51 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
       collapsible 
       className="w-full space-y-2"
     >
-      {items.map((item, index) => (
-        <AccordionItem
-          key={item.id}
-          value={`item-${index}`}
-          className="border border-gray-200 rounded-lg px-6 bg-white shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300"
-        >
-          <AccordionTrigger 
-            className="text-left text-base md:text-lg font-semibold text-gray-900 hover:text-primary-600 py-4"
-            aria-label={`Toggle answer for: ${item.question}`}
+      {items.map((item, index) => {
+        // Sanitize HTML content to prevent XSS attacks
+        const sanitizedAnswer = DOMPurify.sanitize(item.answer, {
+          ALLOWED_TAGS: [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'br', 'strong', 'em', 'u', 's',
+            'a', 'img',
+            'ul', 'ol', 'li',
+            'blockquote', 'code', 'pre',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td',
+            'div', 'span',
+          ],
+          ALLOWED_ATTR: [
+            'href', 'target', 'rel',
+            'src', 'alt', 'title', 'width', 'height',
+            'class',
+          ],
+          ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        });
+
+        return (
+          <AccordionItem
+            key={item.id}
+            value={`item-${index}`}
+            className="border border-gray-200 rounded-lg px-6 bg-white shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-300"
           >
-            {item.question}
-          </AccordionTrigger>
-          <AccordionContent 
-            className="text-gray-700 leading-relaxed pb-4"
-            role="region"
-            aria-label={`Answer for: ${item.question}`}
-          >
-            <div 
-              className="prose prose-sm md:prose-base max-w-none"
-              dangerouslySetInnerHTML={{ __html: item.answer }}
-            />
-          </AccordionContent>
-        </AccordionItem>
-      ))}
+            <AccordionTrigger 
+              className="text-left text-base md:text-lg font-semibold text-gray-900 hover:text-primary-600 py-4"
+              aria-label={`Toggle answer for: ${item.question}`}
+            >
+              {item.question}
+            </AccordionTrigger>
+            <AccordionContent 
+              className="text-gray-700 leading-relaxed pb-4"
+              role="region"
+              aria-label={`Answer for: ${item.question}`}
+            >
+              <div 
+                className="prose prose-sm md:prose-base max-w-none"
+                dangerouslySetInnerHTML={{ __html: sanitizedAnswer }}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
     </Accordion>
   );
 }

@@ -7,6 +7,10 @@ export interface IngestPayload {
     title: string;
     locale: string;
     tags: string[];
+    thumbnailUrl?: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    seoKeywords?: string[];
   };
   mainQuestion: {
     text: string;
@@ -14,6 +18,9 @@ export interface IngestPayload {
   article: {
     content: string;
     status: ContentStatus;
+    seoTitle?: string;
+    seoDescription?: string;
+    seoKeywords?: string[];
   };
   faqItems: {
     question: string;

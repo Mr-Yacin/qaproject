@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/middleware/auth.middleware';
+import { requireRole } from '@/lib/middleware/auth.middleware';
 import { UserRole } from '@prisma/client';
-import { MenuService, InvalidParentError } from '@/lib/services/menu.service';
+import { MenuService } from '@/lib/services/menu.service';
 import { CreateMenuItemSchema } from '@/lib/validation/menu.schema';
 import { AuditService } from '@/lib/services/audit.service';
 import { revalidateTag } from 'next/cache';
-import { z } from 'zod';
+import { handleAPIError } from '@/lib/errors';
 
 /**
  * GET /api/admin/menus
@@ -22,25 +22,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(menuStructure);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    console.error('Error fetching menu structure:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch menu structure' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }
 
@@ -85,38 +67,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newMenuItem, { status: 201 });
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    if (error instanceof InvalidParentError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error creating menu item:', error);
-    return NextResponse.json(
-      { error: 'Failed to create menu item' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }

@@ -30,10 +30,36 @@ export const topicFormSchema = z.object({
     .array(z.string().min(1, 'Tag cannot be empty').max(50, 'Tag must be 50 characters or less'))
     .min(1, 'At least one tag is required to help categorize your topic')
     .max(10, 'Maximum 10 tags allowed to keep topics organized'),
+  thumbnailUrl: z
+    .string()
+    .url('Thumbnail must be a valid URL')
+    .optional(),
   mainQuestion: z
     .string()
     .min(10, 'Main question must be at least 10 characters to be clear and specific')
     .max(500, 'Main question must be 500 characters or less for better readability'),
+  
+  // SEO Fields for Topic
+  seoTitle: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (val.length >= 10 && val.length <= 60),
+      'SEO title should be between 10-60 characters for optimal search results'
+    ),
+  seoDescription: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (val.length >= 50 && val.length <= 160),
+      'SEO description should be between 50-160 characters for optimal search results'
+    ),
+  seoKeywords: z
+    .array(z.string().min(1).max(30))
+    .max(10, 'Maximum 10 SEO keywords allowed')
+    .default([]),
+
+  // Article Fields
   articleContent: z
     .string()
     .min(50, 'Article content must be at least 50 characters to provide meaningful information')
@@ -42,6 +68,27 @@ export const topicFormSchema = z.object({
     .enum(['DRAFT', 'PUBLISHED'], {
       errorMap: () => ({ message: 'Status must be either DRAFT or PUBLISHED' }),
     }),
+  
+  // SEO Fields for Article
+  articleSeoTitle: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (val.length >= 10 && val.length <= 60),
+      'Article SEO title should be between 10-60 characters for optimal search results'
+    ),
+  articleSeoDescription: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (val.length >= 50 && val.length <= 160),
+      'Article SEO description should be between 50-160 characters for optimal search results'
+    ),
+  articleSeoKeywords: z
+    .array(z.string().min(1).max(30))
+    .max(10, 'Maximum 10 article SEO keywords allowed')
+    .default([]),
+
   faqItems: z
     .array(
       z.object({

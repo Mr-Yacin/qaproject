@@ -15,6 +15,9 @@ const createTopicSchema = z.object({
     title: z.string(),
     locale: z.string(),
     tags: z.array(z.string()),
+    seoTitle: z.string().optional(),
+    seoDescription: z.string().optional(),
+    seoKeywords: z.array(z.string()).default([]),
   }),
   mainQuestion: z.object({
     text: z.string(),
@@ -22,6 +25,9 @@ const createTopicSchema = z.object({
   article: z.object({
     content: z.string(),
     status: z.enum(['DRAFT', 'PUBLISHED']),
+    seoTitle: z.string().optional(),
+    seoDescription: z.string().optional(),
+    seoKeywords: z.array(z.string()).default([]),
   }),
   faqItems: z.array(
     z.object({

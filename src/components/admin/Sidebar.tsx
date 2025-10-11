@@ -126,6 +126,7 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
+          data-testid="mobile-sidebar-overlay"
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onMobileToggle}
           aria-hidden="true"
@@ -134,6 +135,7 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
 
       {/* Sidebar */}
       <aside
+        data-testid={`admin-sidebar${isMobileOpen ? ' mobile-sidebar' : ''}`}
         className={`
           fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200
           transform transition-transform duration-300 ease-in-out
@@ -154,6 +156,7 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
             </Link>
             <button
               onClick={onMobileToggle}
+              data-testid="mobile-menu-toggle"
               className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               aria-label="Close sidebar"
             >
@@ -171,6 +174,7 @@ export default function Sidebar({ isMobileOpen, onMobileToggle }: SidebarProps) 
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}${active ? '.active' : ''}`}
                   onClick={() => {
                     // Close mobile menu on navigation
                     if (isMobileOpen) {

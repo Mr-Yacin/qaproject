@@ -47,6 +47,7 @@ export function PageEditor({ content, onChange }: PageEditorProps) {
       }),
     ],
     content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

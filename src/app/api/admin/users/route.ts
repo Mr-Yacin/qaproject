@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/middleware/auth.middleware';
+import { requireRole } from '@/lib/middleware/auth.middleware';
+import { UnauthorizedError, ForbiddenError } from '@/lib/errors';
 import { UserRole } from '@prisma/client';
 import { UserService } from '@/lib/services/user.service';
 import { CreateUserSchema } from '@/lib/validation/user.schema';

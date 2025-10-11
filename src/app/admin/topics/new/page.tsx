@@ -30,6 +30,10 @@ export default function NewTopicPage() {
           title: data.title,
           locale: data.locale,
           tags: data.tags,
+          thumbnailUrl: data.thumbnailUrl,
+          seoTitle: data.seoTitle,
+          seoDescription: data.seoDescription,
+          seoKeywords: data.seoKeywords,
         },
         mainQuestion: {
           text: data.mainQuestion,
@@ -37,6 +41,9 @@ export default function NewTopicPage() {
         article: {
           content: data.articleContent,
           status: data.articleStatus,
+          seoTitle: data.articleSeoTitle,
+          seoDescription: data.articleSeoDescription,
+          seoKeywords: data.articleSeoKeywords,
         },
         faqItems: data.faqItems.map((item) => ({
           question: item.question,

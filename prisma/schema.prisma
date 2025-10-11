@@ -16,13 +16,17 @@ enum ContentStatus {
 }
 
 model Topic {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  title     String
-  locale    String
-  tags      String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  locale         String
+  tags           String[]
+  thumbnailUrl   String?  // URL to topic thumbnail image
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   questions Question[]
   articles  Article[]
@@ -31,6 +35,10 @@ model Topic {
   @@index([slug])
   @@index([locale])
   @@index([tags])
+  @@index([seoKeywords])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([locale, updatedAt])
 }
 
 model Question {
@@ -48,16 +56,20 @@ model Question {
 }
 
 model Article {
-  id        String        @id @default(cuid())
-  topicId   String        @unique
-  content   String        @db.Text
-  status    ContentStatus @default(DRAFT)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  topicId        String        @unique
+  content        String        @db.Text
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@index([topicId, status])
+  @@index([seoKeywords])
 }
 
 model FAQItem {
@@ -124,6 +136,8 @@ model Page {
 
   @@index([slug])
   @@index([status])
+  @@index([updatedAt])
+  @@index([status, updatedAt])
 }
 
 // Navigation menu items
@@ -193,6 +207,8 @@ model Media {
 
   @@index([mimeType])
   @@index([createdAt])
+  @@index([uploadedBy])
+  @@index([mimeType, createdAt])
 }
 
 // User management with roles
@@ -216,6 +232,8 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([isActive])
+  @@index([role, isActive])
 }
 
 // Audit logging
@@ -243,4 +261,8 @@ model AuditLog {
   @@index([userId])
   @@index([entityType])
   @@index([createdAt])
+  @@index([action])
+  @@index([userId, createdAt])
+  @@index([entityType, createdAt])
+  @@index([action, createdAt])
 }

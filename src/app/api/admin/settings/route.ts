@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/middleware/auth.middleware';
+import { requireRole } from '@/lib/middleware/auth.middleware';
 import { UserRole } from '@prisma/client';
 import { SettingsService } from '@/lib/services/settings.service';
 import { SiteSettingsSchema } from '@/lib/validation/schemas';
 import { AuditService } from '@/lib/services/audit.service';
 import { revalidateTag } from 'next/cache';
-import { z } from 'zod';
+import { handleAPIError } from '@/lib/errors';
 
 /**
  * GET /api/admin/settings
@@ -22,25 +22,7 @@ export async function GET() {
 
     return NextResponse.json(settings);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    console.error('Error fetching settings:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch settings' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }
 
@@ -86,31 +68,6 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updatedSettings);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 403 }
-      );
-    }
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error updating settings:', error);
-    return NextResponse.json(
-      { error: 'Failed to update settings' },
-      { status: 500 }
-    );
+    return handleAPIError(error);
   }
 }

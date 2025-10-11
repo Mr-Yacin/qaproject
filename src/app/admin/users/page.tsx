@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { UserService } from '@/lib/services/user.service';
 import { UserList } from '@/components/admin/users/UserList';
 import { UserRole } from '@prisma/client';
+import { ClientAuthCheck } from '@/components/admin/ClientAuthCheck';
 
 /**
  * Users Management Page
@@ -35,8 +36,10 @@ export default async function UsersPage() {
   }));
 
   return (
-    <div className="container mx-auto py-8">
-      <UserList initialUsers={sanitizedUsers} currentUserId={currentUser.id} />
-    </div>
+    <ClientAuthCheck requiredRole={UserRole.ADMIN}>
+      <div className="container mx-auto py-8">
+        <UserList initialUsers={sanitizedUsers} currentUserId={currentUser.id} />
+      </div>
+    </ClientAuthCheck>
   );
 }

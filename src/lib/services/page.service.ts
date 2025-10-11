@@ -7,18 +7,19 @@ import {
   PaginatedPages,
 } from '@/lib/repositories/page.repository';
 import { CreatePageInput, UpdatePageInput } from '@/lib/validation/page.schema';
-
-export class DuplicateSlugError extends Error {
-  constructor(slug: string) {
-    super(`Page with slug "${slug}" already exists`);
-    this.name = 'DuplicateSlugError';
-  }
-}
+import { DuplicateError, NotFoundError } from '@/lib/errors';
 
 export class PageNotFoundError extends Error {
   constructor(slug: string) {
     super(`Page with slug "${slug}" not found`);
     this.name = 'PageNotFoundError';
+  }
+}
+
+export class DuplicateSlugError extends Error {
+  constructor(slug: string) {
+    super(`Page with slug "${slug}" already exists`);
+    this.name = 'DuplicateSlugError';
   }
 }
 
