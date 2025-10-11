@@ -86,6 +86,25 @@ The framework supports different execution modes:
 - **Full**: Comprehensive testing (~45 minutes)
 - **Targeted**: Specific component testing
 - **Continuous**: Lightweight monitoring
+- **Database Schema**: Database compatibility validation (~10 minutes)
+
+#### Database Schema Compatibility Tests
+
+Run database-specific tests to validate schema changes:
+
+```bash
+# Run all database schema compatibility tests
+npm run test -- tests/verification/database-schema-compatibility.test.ts
+
+# Run database performance tests only
+npm run test -- tests/verification/database-performance.test.ts
+
+# Run database constraint tests only
+npm run test -- tests/verification/database-constraints.test.ts
+
+# Run using the dedicated test runner
+npx ts-node tests/verification/run-database-schema-tests.ts
+```
 
 ## Configuration
 
@@ -110,6 +129,8 @@ Pre-configured test scenarios are available:
 - **Security Verification**: Authentication and security tests
 - **Performance Verification**: Performance and caching tests
 - **Schema Verification**: Database schema compatibility tests
+- **Database Performance**: Query performance and optimization tests
+- **Database Constraints**: Constraint enforcement and data integrity tests
 - **Backward Compatibility**: Legacy client compatibility tests
 
 ## Test Categories
@@ -128,6 +149,22 @@ Pre-configured test scenarios are available:
 - Index performance validation
 - Constraint enforcement
 - Migration verification
+
+### 2.1. Database Performance Tests
+- Query execution time measurement for topic listing
+- Individual topic retrieval performance with new fields
+- Complex query performance with filtering and pagination
+- Index utilization validation for new SEO fields
+- Array field query performance (tags, seoKeywords)
+- Composite index performance testing
+
+### 2.2. Database Constraint Tests
+- Unique constraint enforcement (topic slugs, user emails)
+- Foreign key relationship validation
+- Cascading delete functionality verification
+- Enum value constraint testing (ContentStatus, UserRole, AuditAction)
+- Array field constraint validation
+- Data type compatibility verification
 
 ### 3. Authentication (`TestCategory.AUTHENTICATION`)
 - HMAC signature validation
