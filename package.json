@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest",
+    "test": "vitest run",
     "test:verification": "vitest --config tests/verification/vitest.config.ts",
     "test:verification:quick": "vitest --config tests/verification/vitest.config.ts --run --reporter=verbose",
     "test:verification:coverage": "vitest --config tests/verification/vitest.config.ts --coverage",

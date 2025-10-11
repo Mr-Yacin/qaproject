@@ -10,8 +10,13 @@ import path from 'path';
 // Load environment variables from .env file
 try {
   const dotenv = require('dotenv');
-  const envPath = path.resolve(__dirname, '.env');
-  dotenv.config({ path: envPath });
+  // Load from root .env file first
+  const rootEnvPath = path.resolve(__dirname, '../../.env');
+  dotenv.config({ path: rootEnvPath });
+  
+  // Then load verification-specific .env if it exists
+  const verificationEnvPath = path.resolve(__dirname, '.env');
+  dotenv.config({ path: verificationEnvPath });
 } catch (error) {
   console.warn('Could not load .env file, using system environment variables');
 }
